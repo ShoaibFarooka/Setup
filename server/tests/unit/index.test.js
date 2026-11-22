@@ -1,8 +1,8 @@
 jest.mock('../../src/database/connection');
 
-const mongoose = require('mongoose');
 const config = require('../../src/configs/app.config');
 const connectDB = require('../../src/database/connection');
+const { disconnectDB } = require('../../src/database/connection');
 const logger = require('../../src/utils/logger.util');
 const app = require('../../src/app');
 
@@ -15,6 +15,12 @@ const waitForExit = () => new Promise((resolve) => {
     jest.spyOn(process, 'exit').mockImplementation(resolve);
 });
 
+const startListening = async () => {
+    const server = startServer();
+    await new Promise((resolve) => server.on('listening', resolve));
+    return server;
+};
+
 describe('index', () => {
     afterEach(() => jest.restoreAllMocks());
 
@@ -23,8 +29,7 @@ describe('index', () => {
     });
 
     test('startServer listens and connects to the database with retry', async () => {
-        const server = startServer();
-        await new Promise((resolve) => server.on('listening', resolve));
+        const server = await startListening();
 
         expect(server.listening).toBe(true);
         expect(connectDB).toHaveBeenCalledWith(config.databaseUri, { retry: true });
@@ -40,9 +45,8 @@ describe('index', () => {
     });
 
     test('shutdown closes the server, then the database connection, then exits with 0', async () => {
-        const server = startServer();
-        await new Promise((resolve) => server.on('listening', resolve));
-        jest.spyOn(mongoose, 'disconnect').mockResolvedValue();
+        const server = await startListening();
+        disconnectDB.mockResolvedValue(true);
         const exited = waitForExit();
 
         shutdown('SIGTERM');
@@ -50,9 +54,20 @@ describe('index', () => {
 
         expect(code).toBe(0);
         expect(server.listening).toBe(false);
-        expect(mongoose.disconnect).toHaveBeenCalled();
+        expect(disconnectDB).toHaveBeenCalled();
         expect(logger.info).toHaveBeenCalledWith({ signal: 'SIGTERM' }, 'Shutting down gracefully');
         expect(logger.info).toHaveBeenCalledWith('Database connection closed');
+    });
+
+    test('shutdown without a database connection exits without waiting for it', async () => {
+        await startListening();
+        disconnectDB.mockResolvedValue(false);
+        const exited = waitForExit();
+
+        shutdown('SIGINT');
+
+        expect(await exited).toBe(0);
+        expect(logger.info).toHaveBeenCalledWith('Database was not connected');
     });
 });
 
@@ -96,9 +111,8 @@ describe('index registerProcessHandlers', () => {
     });
 
     test.each(['SIGTERM', 'SIGINT'])('%s shuts the server down gracefully', async (signal) => {
-        const server = startServer();
-        await new Promise((resolve) => server.on('listening', resolve));
-        jest.spyOn(mongoose, 'disconnect').mockResolvedValue();
+        await startListening();
+        disconnectDB.mockResolvedValue(true);
         const exited = waitForExit();
 
         handlers[signal]();

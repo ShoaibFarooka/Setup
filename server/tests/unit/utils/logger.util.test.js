@@ -34,6 +34,14 @@ describe('logger.util createLogger', () => {
         expect(lines()[0].err).toEqual(expect.objectContaining({ type: 'TypeError', message: 'boom', stack: expect.any(String) }));
     });
 
+    test('a short error summary under `error` is written as it is (not reformatted like `err`)', () => {
+        const { log, lines } = createCapturingLogger();
+
+        log.warn({ error: { type: 'MongoNetworkError', message: 'down' } }, 'Could not connect');
+
+        expect(lines()[0].error).toEqual({ type: 'MongoNetworkError', message: 'down' });
+    });
+
     test('never writes tokens, cookies or passwords', () => {
         const { log, lines } = createCapturingLogger();
 

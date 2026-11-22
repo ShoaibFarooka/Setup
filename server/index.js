@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
 const config = require('./src/configs/app.config');
 const connectDB = require('./src/database/connection');
+const { disconnectDB } = require('./src/database/connection');
 const logger = require('./src/utils/logger.util');
 const app = require('./src/app');
 
@@ -24,11 +24,11 @@ const startServer = () => {
 const shutdown = (signal) => {
     logger.info({ signal }, 'Shutting down gracefully');
 
-    // Stop taking new requests, let running ones finish, then close the database connection
+    // Stop taking new requests, let running ones finish, then close the database connection (if there is one)
     server.close(async () => {
         logger.info('Server closed');
-        await mongoose.disconnect();
-        logger.info('Database connection closed');
+        const wasConnected = await disconnectDB();
+        logger.info(wasConnected ? 'Database connection closed' : 'Database was not connected');
         process.exit(0);
     });
 };
