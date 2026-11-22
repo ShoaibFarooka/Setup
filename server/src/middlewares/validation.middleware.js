@@ -1,0 +1,75 @@
+const logger = require('../utils/logger.util');
+const { AppError } = require('../utils/app-error.util');
+
+// Validation failures are passed on as AppError (400) and answered by the error handler, like every other error
+
+const LABELS = { body: 'Request', params: 'Params', query: 'Query' };
+
+const formatYupError = (error) => {
+    // Anything that is not a Yup ValidationError has no `inner` array
+    if (!Array.isArray(error?.inner)) {
+        return { message: error?.message || 'Validation failed' };
+    }
+
+    return Object.fromEntries(error.inner.map((err) => [err.path, err.message]));
+};
+
+// Validates req[source] against a Yup schema and replaces it with the validated values
+// (converted and trimmed, e.g. ?page=2 becomes the number 2). Fields the schema does not know are rejected.
+const validate = (schema, source = 'body') => async (req, res, next) => {
+    const label = LABELS[source];
+    const input = req[source];
+
+    let value;
+    try {
+        value = await schema.validate(input, { abortEarly: false, stripUnknown: false });
+    } catch (error) {
+        const errors = formatYupError(error);
+        (req.log ?? logger).warn({ errors }, `${label} validation failed`);
+        return next(new AppError(`${label} validation failed`, 400, { errors }));
+    }
+
+    const unknownFields = Object.keys(input).filter((field) => !(field in schema.fields));
+    if (unknownFields.length > 0) {
+        return next(new AppError(`Unknown fields present in request ${source}`, 400, { errors: { unknownFields } }));
+    }
+
+    // Express 5 makes req.query a getter, so it has to be redefined instead of assigned
+    Object.defineProperty(req, source, { value, writable: true, configurable: true, enumerable: true });
+    next();
+};
+
+const validateRequest = (schema) => validate(schema, 'body');
+const validateParams = (schema) => validate(schema, 'params');
+const validateQuery = (schema) => validate(schema, 'query');
+
+// Checks the file added by multer (req.file): required or not, at most 10MB, images only
+const validateFile = (options) => (req, res, next) => {
+    const { required } = options;
+    try {
+        if (required && !req.file) {
+            return next(new AppError('File upload is mandatory', 400));
+        }
+
+        if (req.file) {
+            if (req.file.size > 10 * 1024 * 1024) {
+                return next(new AppError('File size too large', 400));
+            }
+            if (!req.file.mimetype.startsWith('image/')) {
+                return next(new AppError('File type not allowed', 400));
+            }
+        }
+        next();
+    } catch (error) {
+        (req.log ?? logger).warn({ err: error }, 'File validation failed');
+        next(new AppError('File validation failed', 400));
+    }
+};
+
+module.exports = {
+    validate,
+    validateParams,
+    validateRequest,
+    validateQuery,
+    validateFile,
+};
