@@ -66,6 +66,13 @@ describe('app CORS', () => {
         expect(res.headers['access-control-allow-credentials']).toBe('true');
     });
 
+    test('the browser app may read the X-Request-Id header', async () => {
+        const res = await request(app).get('/api/does-not-exist').set('Origin', 'http://localhost:5200');
+
+        expect(res.headers['access-control-expose-headers']).toBe('X-Request-Id');
+        expect(res.headers['x-request-id']).toEqual(expect.any(String));
+    });
+
     test('same-origin requests are allowed', async () => {
         const server = app.listen(0);
         const origin = `http://127.0.0.1:${server.address().port}`;

@@ -31,6 +31,8 @@ const corsOptionsDelegate = (req, callback) => {
             origin: true,
             methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization'],
+            // Lets the browser app read the request id (to show or report it); hidden from it otherwise
+            exposedHeaders: ['X-Request-Id'],
             credentials: true,
         });
     }

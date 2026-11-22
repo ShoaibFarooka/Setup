@@ -274,7 +274,7 @@ Browsers only let other websites call the API if the API allows their origin. Ev
 2. it is **same-origin** (the page was served by this server), or
 3. its origin is listed in **`CORS_ORIGINS`**.
 
-Anything else gets `403 Not allowed by CORS`. Allowed requests may send cookies (needed for the refresh token).
+Anything else gets `403 Not allowed by CORS`. Allowed requests may send cookies (needed for the refresh token). The `X-Request-Id` response header is exposed to them, so the browser app can read it (browsers hide other headers unless the server allows them).
 
 | `CORS_ORIGINS` | Development | Production |
 |---|---|---|
