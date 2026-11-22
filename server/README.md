@@ -116,7 +116,10 @@ server/
 │   ├── middlewares/         request logging, auth, validation, rate limits, trimming, error handler
 │   ├── database/            MongoDB connection with retry, global Mongoose settings
 │   ├── seeders/             One-off scripts (npm run seed)
+│   ├── templates/           Templates for emails, PDFs, ... (e.g. Handlebars); empty for now
 │   └── utils/               AppError, response wrapper, tokens and hashing, logger (pino)
+├── static/                  Files the server may serve as they are; empty for now
+│   └── images/
 └── tests/
     ├── setup/               Test environment variables, logger spies
     ├── helpers/             In-memory database, user factory, login helper, log capture
