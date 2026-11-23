@@ -1,0 +1,10 @@
+/* Shown when the server could not be reached while loading the account */
+.page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: var(--space-6) var(--space-4);
+    background-color: var(--color-bg);
+}

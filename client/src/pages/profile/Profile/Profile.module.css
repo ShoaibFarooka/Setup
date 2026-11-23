@@ -1,0 +1,29 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+.accountActions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.security {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.securityTitle {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+}
+
+.securityText {
+    margin-top: var(--space-1);
+    color: var(--color-text-muted);
+}

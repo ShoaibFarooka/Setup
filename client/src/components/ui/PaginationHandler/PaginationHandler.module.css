@@ -1,0 +1,78 @@
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.summary {
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+}
+
+.pages {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.pageButton,
+.gap {
+    width: var(--control-height-sm);
+    height: var(--control-height-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: inherit;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+}
+
+.pageButton {
+    padding: 0;
+    background: none;
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing),
+        transform var(--duration-fast) var(--easing);
+
+    &:active:not(:disabled) {
+        transform: scale(0.94);
+    }
+
+    &:hover:not(:disabled) {
+        background-color: var(--color-hover);
+    }
+
+    &:disabled {
+        color: var(--color-text-subtle);
+        cursor: not-allowed;
+    }
+}
+
+/* The current page keeps its look on hover and does not react to presses (clicking it does nothing) */
+.current,
+.current:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary);
+    cursor: default;
+}
+
+.current:active:not(:disabled) {
+    transform: none;
+}
+
+@media (max-width: 768px) {
+    .pagination {
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+
+    .pages {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}

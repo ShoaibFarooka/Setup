@@ -1,0 +1,10 @@
+/* The app font, bundled with the app (no request to Google Fonts: faster, private, works offline).
+   Only the weights the theme uses (--font-weight-*). Another font: install its @fontsource package, import
+   its weights here and change --font-family in theme.css. */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+
+@import './styles/base.css';
+@import './styles/theme.css';

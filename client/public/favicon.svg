@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Placeholder icon matching BrandLogo (the brand colours from src/styles/theme.css); replace with the app's own.
+       The "M" is a shape, not text: fonts are not reliable inside a favicon. -->
+  <style>
+    .tile { fill: #4F46E5; }
+    .letter { fill: #A5F3FC; }
+    /* Dark browser tabs: the dark theme's lighter indigo, like the app in dark mode */
+    @media (prefers-color-scheme: dark) {
+      .tile { fill: #818CF8; }
+      .letter { fill: #0B1020; }
+    }
+  </style>
+  <rect class="tile" width="64" height="64" rx="14"/>
+  <path class="letter" d="M17 46V18h7.5L32 30.5 39.5 18H47v28h-7V30.2l-8 12.6-8-12.6V46z"/>
+</svg>

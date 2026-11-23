@@ -1,0 +1,44 @@
+.logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.crestBg {
+    fill: var(--color-primary);
+}
+
+.crestLetter {
+    fill: var(--color-accent);
+    font-size: 32px;
+    font-weight: var(--font-weight-bold);
+}
+
+.name {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--color-primary);
+}
+
+/* On a brand-coloured area (the login page) */
+.light .name {
+    color: var(--color-on-brand);
+}
+
+.light .crestBg {
+    fill: var(--color-on-brand);
+}
+
+/* On the light tile the letter takes the brand colour, so it stays readable */
+.light .crestLetter {
+    fill: var(--color-brand-bg);
+}
+
+.compact {
+    gap: var(--space-2);
+}
+
+.compact .name {
+    font-size: var(--font-size-lg);
+}

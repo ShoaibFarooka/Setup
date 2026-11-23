@@ -1,0 +1,92 @@
+/* Global on purpose: element defaults for the whole app. Component styles go in their own X.module.css. */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Nothing in the app needs a horizontal page scrollbar (wide tables scroll inside their own box).
+   Without this, a tooltip or popup touching the window edge adds one, shifting the page and making it flicker.
+   Set on html so it applies to the window itself and does not break position: sticky. */
+html {
+    overflow-x: hidden;
+    /* Phones keep our text sizes in landscape instead of inflating them */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    /* A long email or URL wraps instead of pushing the page wider than the screen */
+    overflow-wrap: break-word;
+}
+
+img,
+svg,
+video {
+    max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none;
+    color: var(--color-primary);
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+    color: inherit;
+}
+
+/* One visible focus style for keyboard users everywhere; components may refine it */
+:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* While the theme switches, colours fade instead of jumping (lib/theme.js adds the class for a moment) */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+    transition: background-color var(--duration-base) var(--easing), color var(--duration-base) var(--easing),
+        border-color var(--duration-base) var(--easing), fill var(--duration-base) var(--easing),
+        stroke var(--duration-base) var(--easing), box-shadow var(--duration-base) var(--easing);
+}
+
+/* People who asked their system for less motion get (almost) none */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}

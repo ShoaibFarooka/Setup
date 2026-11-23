@@ -1,0 +1,192 @@
+.wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.topBar {
+    display: none;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    inset-inline-start: 0;
+    z-index: var(--z-sidebar);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: var(--sidebar-width);
+    height: 100vh;
+    height: 100dvh;
+    padding-bottom: var(--space-5);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    border-inline-end: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+}
+
+.closeBar {
+    display: none;
+}
+
+/* Only on small screens, behind the open drawer */
+.backdrop {
+    display: none;
+}
+
+.logo {
+    margin-top: var(--space-10);
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    width: 100%;
+    margin-top: var(--space-12);
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    padding: var(--space-3) 0;
+    padding-inline-start: 12.5%;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing),
+        box-shadow var(--duration-base) var(--easing);
+
+    &:hover {
+        background-color: var(--color-hover);
+        color: var(--color-text);
+    }
+
+    &:active {
+        background-color: var(--color-primary-soft);
+    }
+}
+
+/* Log out is a button (an action, not a link) that looks like the other menu items */
+.itemButton {
+    border: none;
+    background: none;
+    text-align: start;
+}
+
+.label {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+}
+
+.active {
+    background-color: var(--color-primary-soft);
+    box-shadow: inset 4px 0 0 var(--color-primary);
+    color: var(--color-primary);
+
+    &:hover {
+        background-color: var(--color-primary-soft);
+        color: var(--color-primary);
+    }
+}
+
+.footer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: calc(100% - var(--space-6));
+    margin-top: auto;
+}
+
+.userCard {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 1;
+    min-width: 0;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface-muted);
+}
+
+.userText {
+    min-width: 0;
+}
+
+.userName {
+    overflow: hidden;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.userRole {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    text-transform: capitalize;
+}
+
+@media print {
+    .wrapper {
+        display: none;
+    }
+}
+
+/* Small screens: the sidebar slides in from a top bar */
+@media (max-width: 768px) {
+    .topBar {
+        position: fixed;
+        z-index: var(--z-sidebar);
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        width: 100%;
+        padding: var(--space-2) var(--space-3);
+        border-bottom: 1px solid var(--color-border);
+        background-color: var(--color-surface);
+    }
+
+    /* A drawer that slides in from the side. While closed it is also hidden from screen readers and the keyboard. */
+    .sidebar {
+        width: 260px;
+        transition: transform var(--duration-slow) var(--easing-out), visibility var(--duration-slow);
+    }
+
+    .closed {
+        transform: translateX(-100%);
+        visibility: hidden;
+    }
+
+    .open {
+        transform: none;
+        visibility: visible;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: calc(var(--z-sidebar) - 1);
+        display: block;
+        background-color: var(--color-overlay);
+        animation: backdropIn var(--duration-base) var(--easing-out) both;
+    }
+
+    .closeBar {
+        display: block;
+        width: 100%;
+        padding: var(--space-2) var(--space-3);
+    }
+
+    .logo {
+        margin-top: var(--space-2);
+    }
+}
+
+@keyframes backdropIn {
+    from {
+        opacity: 0;
+    }
+}

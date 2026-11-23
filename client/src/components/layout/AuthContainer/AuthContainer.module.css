@@ -1,0 +1,115 @@
+/* Desktop: the brand on the left, the form panel on the right, the theme toggle in a row above them.
+   Phone and tablet: the brand sits above the form, smaller, and the panel becomes a card. */
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: var(--space-4) var(--space-16) var(--space-12);
+    background-color: var(--color-brand-bg);
+}
+
+.topBar {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--space-10);
+}
+
+.intro {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-4);
+    color: var(--color-on-brand);
+}
+
+.headline {
+    margin-top: var(--space-5);
+    font-size: var(--font-size-4xl);
+    letter-spacing: var(--letter-spacing-tight);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+}
+
+.subHeadline {
+    max-width: 420px;
+    font-size: var(--font-size-lg);
+    opacity: 0.85;
+}
+
+.panel {
+    width: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8) var(--space-6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 1024px) {
+    .container {
+        padding: var(--space-4) var(--space-6) var(--space-10);
+    }
+
+    .panel {
+        width: 420px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: var(--space-3) var(--space-4) var(--space-8);
+    }
+
+    .body {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: center;
+        gap: var(--space-6);
+    }
+
+    .intro {
+        flex: none;
+        align-items: center;
+        gap: var(--space-2);
+        text-align: center;
+    }
+
+    .headline {
+        margin-top: var(--space-3);
+    }
+
+    .subHeadline {
+        font-size: var(--font-size-md);
+    }
+
+    .panel {
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+        padding: var(--space-6) var(--space-5);
+    }
+}
+
+@media (max-width: 480px) {
+    .body {
+        justify-content: flex-start;
+    }
+
+    /* On a phone the headline alone is enough; the panel stays on screen without scrolling */
+    .subHeadline {
+        display: none;
+    }
+}

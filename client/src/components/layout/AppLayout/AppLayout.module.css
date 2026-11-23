@@ -1,0 +1,57 @@
+.layout {
+    display: flex;
+    overflow-x: hidden;
+}
+
+.content {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background-color: var(--color-bg);
+}
+
+.withSidebar {
+    width: calc(100% - var(--sidebar-width));
+    margin-inline-start: var(--sidebar-width);
+    padding: var(--space-10);
+}
+
+@media print {
+    .withSidebar {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .withSidebar {
+        width: 100%;
+        margin: 0;
+        /* Clears the fixed top bar (a control plus its padding), then the usual gap */
+        padding: calc(var(--control-height-md) + var(--space-4) + var(--space-6)) var(--space-4) var(--space-8);
+    }
+}
+
+/* Off screen until it gets keyboard focus, then shown at the top left */
+.skipLink {
+    position: absolute;
+    top: var(--space-2);
+    inset-inline-start: var(--space-2);
+    z-index: calc(var(--z-sidebar) + 1);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font-weight: var(--font-weight-semibold);
+    transform: translateY(-200%);
+
+    &:focus-visible {
+        transform: none;
+    }
+}
+
+/* Focused by the skip link (to move the keyboard there), not something to click: no focus ring */
+.content:focus {
+    outline: none;
+}

@@ -1,0 +1,32 @@
+/* The loader only shows after --loader-delay: a quick load (most of them) never flashes a spinner */
+.loader {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-loader);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: appear var(--duration-base) var(--easing-out) var(--loader-delay) both;
+}
+
+.overlay {
+    background-color: var(--color-overlay);
+    color: var(--color-text-inverse);
+}
+
+.page {
+    background-color: var(--color-bg);
+    color: var(--color-primary);
+}
+
+@keyframes appear {
+    from {
+        opacity: 0;
+    }
+}
+
+.content {
+    position: static;
+    min-height: 50vh;
+    color: var(--color-primary);
+}

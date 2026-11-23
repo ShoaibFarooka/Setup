@@ -1,0 +1,183 @@
+/* Design tokens: every colour, size and timing the app uses.
+   Components read only the semantic tokens (--color-*, --space-*, ...), never the brand palette directly,
+   so restyling a project means editing this file. Light values are on :root, dark values on [data-theme='dark']
+   (set on <html> by index.html and ThemeProvider). Every colour token needs a value in both.
+   Current look: "Indigo Slate" (indigo primary, cool slate neutrals, Inter). */
+
+:root {
+    /* ---- Brand palette: change these per project ---- */
+    --brand-primary: #4F46E5;
+    --brand-primary-hover: #4338CA;
+    --brand-primary-soft: #EEF0FF;
+    --brand-accent: #A5F3FC;           /* small highlights on the primary colour (the logo letter) */
+
+    /* ---- Surfaces ---- */
+    --color-bg: #F6F7FB;               /* page background */
+    --color-surface: #FFFFFF;          /* cards, panels, sidebar */
+    --color-surface-muted: #F1F3F9;    /* inputs, subtle blocks, table headers */
+    --color-surface-raised: #FFFFFF;   /* menus, popovers, dialogs */
+    --color-overlay: rgba(15, 23, 42, 0.55);
+
+    /* ---- Text ---- */
+    --color-text: #0F172A;
+    --color-text-muted: #5B6478;       /* secondary text, labels */
+    --color-text-subtle: #8A93A6;      /* placeholders, disabled */
+    --color-text-inverse: #FFFFFF;     /* on dark or coloured backgrounds */
+
+    /* ---- Borders ---- */
+    --color-border: #E2E6EF;
+    --color-border-strong: #C5CCDA;
+
+    /* ---- Brand roles ---- */
+    --color-primary: var(--brand-primary);
+    --color-primary-hover: var(--brand-primary-hover);
+    --color-primary-soft: var(--brand-primary-soft);   /* tinted backgrounds: active menu item, selected row */
+    --color-on-primary: #FFFFFF;                       /* text and icons on --color-primary */
+    --color-brand-bg: var(--brand-primary);            /* large brand-coloured areas (the login page's side) */
+    --color-on-brand: #FFFFFF;                         /* text and icons on --color-brand-bg */
+    --color-on-brand-hover: rgba(255, 255, 255, 0.16); /* hover over --color-brand-bg (inverse buttons) */
+    --color-accent: var(--brand-accent);
+    --color-focus-ring: rgba(79, 70, 229, 0.35);
+    --color-hover: rgba(15, 23, 42, 0.05);             /* neutral hover over any surface */
+
+    /* ---- Status (text/icon colour + soft background) ---- */
+    --color-success: #15803D;
+    --color-success-soft: #DCFCE7;
+    --color-warning: #A16207;
+    --color-warning-soft: #FEF3C7;
+    --color-danger: #B91C1C;
+    --color-danger-hover: #991B1B;
+    --color-danger-soft: #FEE2E2;
+    --color-info: #1D4ED8;
+    --color-info-soft: #DBEAFE;
+
+    /* ---- Shadows ---- */
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.14);
+
+    /* ---- Typography ---- */
+    --font-family: 'Inter', system-ui, sans-serif;
+    /* Text sizes in rem, so they follow the size people set in their browser. Body text stays 16px on every
+       screen (smaller is hard to read, and phones zoom into smaller inputs); headings scale with the screen
+       width between a phone value and a desktop value (clamp), so they never wrap awkwardly on a phone. */
+    --font-size-xs: 0.75rem;                                  /* 12px */
+    --font-size-sm: 0.875rem;                                 /* 14px */
+    --font-size-md: 1rem;                                     /* 16px, body */
+    --font-size-lg: 1.125rem;                                 /* 18px */
+    --font-size-xl: clamp(1.125rem, 1.05rem + 0.3vw, 1.25rem); /* 18 → 20px */
+    --font-size-2xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);  /* 20 → 24px */
+    --font-size-3xl: clamp(1.5rem, 1.2rem + 1.4vw, 2rem);     /* 24 → 32px, page titles */
+    --font-size-4xl: clamp(1.75rem, 1.2rem + 2.6vw, 2.75rem); /* 28 → 44px, hero */
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --line-height-tight: 1.2;
+    --line-height-base: 1.5;
+    --letter-spacing-tight: -0.02em;   /* large headings */
+
+    /* ---- Spacing (4px scale) ---- */
+    --space-1: 0.25rem;   /* 4px */
+    --space-2: 0.5rem;    /* 8px */
+    --space-3: 0.75rem;   /* 12px */
+    --space-4: 1rem;      /* 16px */
+    --space-5: 1.25rem;   /* 20px */
+    --space-6: 1.5rem;    /* 24px */
+    --space-8: 2rem;      /* 32px */
+    --space-10: 2.5rem;   /* 40px */
+    --space-12: 3rem;     /* 48px */
+    --space-16: 4rem;     /* 64px */
+
+    /* ---- Shape and sizes ---- */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
+    --control-height-sm: 32px;
+    --control-height-md: 40px;
+    --control-height-lg: 48px;   /* touch screens get larger controls, below */
+    --sidebar-width: 232px;
+
+    /* ---- Motion (all of it switched off for people who ask their system for less motion, see base.css) ---- */
+    --duration-fast: 150ms;                        /* hover, press, small colour changes */
+    --duration-base: 250ms;                        /* toggles, menus, theme switch */
+    --duration-slow: 400ms;                        /* things entering the screen: pages, panels */
+    --easing: cubic-bezier(0.2, 0, 0, 1);          /* moving between two states */
+    --easing-out: cubic-bezier(0.16, 1, 0.3, 1);   /* entering: fast start, soft landing */
+    --loader-delay: 300ms;                         /* spinners wait this long, so quick loads never flash one */
+
+    /* ---- Layers ---- */
+    --z-sidebar: 100;
+    --z-overlay: 1000;
+    --z-loader: 2000;
+
+    /* Native controls, scrollbars and form autofill follow the theme */
+    color-scheme: light;
+}
+
+/* Touch screens: controls a finger can hit reliably (44px is the usual minimum) */
+@media (pointer: coarse) {
+    :root {
+        --control-height-sm: 40px;
+        --control-height-md: 44px;
+        --control-height-lg: 48px;
+    }
+}
+
+/* Breakpoints (media queries cannot read variables, so these are the agreed values; use only these):
+   480px phone, 768px tablet (the sidebar becomes a drawer), 1024px small laptop.
+   Write them as max-width queries: @media (max-width: 768px) { ... } */
+
+:root[data-theme='dark'] {
+    --brand-primary: #818CF8;
+    --brand-primary-hover: #A5B4FC;
+    --brand-primary-soft: #1E2350;
+    --brand-accent: #083344;
+
+    --color-bg: #0B1020;
+    --color-surface: #121829;
+    --color-surface-muted: #1A2236;
+    --color-surface-raised: #172036;
+    --color-overlay: rgba(2, 6, 23, 0.7);
+
+    --color-text: #E6E9F2;
+    --color-text-muted: #9AA4BC;
+    --color-text-subtle: #6B7590;
+    --color-text-inverse: #0B1020;
+
+    --color-border: #253049;
+    --color-border-strong: #3A4766;
+
+    --color-on-primary: #0B1020;
+    /* A large area in the bright dark-mode indigo would glare: brand areas get a deep indigo instead */
+    --color-brand-bg: #1E1B4B;
+    --color-on-brand: #E6E9F2;
+    --color-on-brand-hover: rgba(255, 255, 255, 0.1);
+    --color-focus-ring: rgba(129, 140, 248, 0.45);
+    --color-hover: rgba(255, 255, 255, 0.06);
+
+    --color-success: #4ADE80;
+    --color-success-soft: #12291D;
+    --color-warning: #FBBF24;
+    --color-warning-soft: #2E2410;
+    --color-danger: #F87171;
+    --color-danger-hover: #FCA5A5;
+    --color-danger-soft: #351719;
+    --color-info: #60A5FA;
+    --color-info-soft: #142640;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+
+    color-scheme: dark;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-base);
+    color: var(--color-text);
+    background-color: var(--color-bg);
+}

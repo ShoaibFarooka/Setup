@@ -1,0 +1,12 @@
+/* The new icon turns into place on every change, so the switch feels like it happened */
+.icon {
+    display: flex;
+    animation: turnIn var(--duration-base) var(--easing-out) both;
+}
+
+@keyframes turnIn {
+    from {
+        opacity: 0;
+        transform: rotate(-90deg) scale(0.6);
+    }
+}

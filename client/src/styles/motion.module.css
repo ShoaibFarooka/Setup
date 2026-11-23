@@ -1,0 +1,37 @@
+/* Shared entry animations: add the class next to the component's own (clsx(styles.error, motion.fadeIn)).
+   They only animate opacity and transform, which stay smooth, and base.css turns them off for reduced motion. */
+
+/* Appears in place: error messages, small notices */
+.fadeIn {
+    animation: fadeIn var(--duration-base) var(--easing-out) both;
+}
+
+/* Rises into place: pages, panels, cards */
+.fadeUp {
+    animation: fadeUp var(--duration-slow) var(--easing-out) both;
+}
+
+/* Grows into place: popovers, badges that appear */
+.popIn {
+    animation: popIn var(--duration-base) var(--easing-out) both;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}

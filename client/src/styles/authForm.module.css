@@ -1,0 +1,47 @@
+/* Shared layout of the auth pages' forms (login now; register, forgot password later).
+   The fields and buttons themselves come from components/ui. */
+.form {
+    width: 348px;
+    max-width: 100%;
+    padding: var(--space-4) 0;
+    text-align: center;
+}
+
+.title {
+    font-size: var(--font-size-2xl);
+    letter-spacing: var(--letter-spacing-tight);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+}
+
+.description {
+    margin-top: var(--space-1);
+    color: var(--color-text-muted);
+}
+
+.fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    margin-top: var(--space-8);
+}
+
+.submit {
+    margin-top: var(--space-8);
+}
+
+@media (max-width: 768px) {
+    .form {
+        width: 100%;
+        padding: var(--space-2) 0;
+    }
+
+    .fields {
+        gap: var(--space-4);
+        margin-top: var(--space-6);
+    }
+
+    .submit {
+        margin-top: var(--space-6);
+    }
+}

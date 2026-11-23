@@ -1,0 +1,9 @@
+/* A full page of its own (outside the app layout): the message sits in the middle of the screen */
+.page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: var(--space-4);
+}

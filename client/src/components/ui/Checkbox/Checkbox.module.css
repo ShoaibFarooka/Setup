@@ -1,0 +1,21 @@
+/* Shared by Checkbox and RadioGroup */
+.choice {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.choice:has(input:disabled) {
+    color: var(--color-text-subtle);
+    cursor: not-allowed;
+}
+
+.input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--color-primary);
+    cursor: inherit;
+}

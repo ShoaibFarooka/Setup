@@ -1,0 +1,45 @@
+.switch {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--color-text);
+    cursor: pointer;
+
+    &:disabled {
+        color: var(--color-text-subtle);
+        cursor: not-allowed;
+    }
+}
+
+.track {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    flex-shrink: 0;
+    border-radius: var(--radius-full);
+    background-color: var(--color-border-strong);
+    transition: background-color var(--duration-base) var(--easing);
+}
+
+.thumb {
+    position: absolute;
+    top: 3px;
+    inset-inline-start: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-full);
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--duration-base) var(--easing);
+}
+
+.on .track {
+    background-color: var(--color-primary);
+}
+
+.on .thumb {
+    transform: translateX(18px);
+}
