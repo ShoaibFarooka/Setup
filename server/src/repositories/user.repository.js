@@ -14,8 +14,12 @@ const findUserByLoginWithPassword = (identifier) => {
     return User.findOne({ $or: [{ email: value }, { username: value }] }).select('+password');
 };
 
-const updateUserById = (userId, update, options = { returnDocument: 'after', runValidators: true }) =>
-    User.findByIdAndUpdate(userId, update, options);
+// projection limits the returned fields; it is applied with select(), because findByIdAndUpdate ignores a
+// projection passed in its options
+const updateUserById = (userId, update, options = { returnDocument: 'after', runValidators: true }, projection = null) => {
+    const query = User.findByIdAndUpdate(userId, update, options);
+    return projection ? query.select(projection) : query;
+};
 
 module.exports = {
     createUser,

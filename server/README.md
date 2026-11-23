@@ -66,6 +66,7 @@ The server starts even when the database is not reachable yet: it keeps retrying
 | `npm run dev` | Start with auto-reload (nodemon) |
 | `npm start` | Start (production) |
 | `npm run seed` | Create the admin account from the `ADMIN_*` variables |
+| `npm run e2e:server` | The API for the client's end-to-end tests: in-memory database, test accounts, port 5100 (the client's `npm run e2e` starts it) |
 | `npm test` | Run all tests |
 | `npm run test:watch` | Re-run affected tests on every save |
 | `npm run test:coverage` | Run tests and report coverage (also written to `coverage/`) |
@@ -255,6 +256,7 @@ Protect routes with `authenticateRequest`, and restrict by role with `verifyRole
 | `POST` | `/api/auth/logout` | refresh cookie | Ends this device's session |
 | `POST` | `/api/auth/logout-all` | access token | Ends the sessions of every device |
 | `GET` | `/api/users/me` | access token | The logged-in user |
+| `PATCH` | `/api/users/me` | access token | Change your own `name` and / or `email` (other fields, such as `role`, are refused); `409` when the email belongs to another account |
 
 Rate limits: 1000 requests per 15 minutes per IP on `/api`; 10 **failed** logins per 15 minutes per IP on `/api/auth/login`.
 
@@ -316,6 +318,9 @@ npm test -- -t "wrong password"              # tests whose name contains this te
 - To check the actual log lines (JSON, redaction), use `createCapturingLogger()` from `tests/helpers/log-capture.js` (see `tests/unit/utils/logger.util.test.js`).
 - Helpers: `createUser(overrides, role)` creates a user and returns its plain password; `loginAs(identifier, password)` returns `{ token, cookie, res }`.
 - Changing a config value for one test file: change it on the `config` object **before** requiring the app (see `tests/integration/rate-limit.test.js`).
+- **No leftovers:** a normal run deletes its in-memory databases. A cancelled or crashed run cannot, so before every run `tests/setup/global-setup.js` deletes `mongo-mem-*` folders in the system temp folder that are older than a day and not in use (`tests/helpers/stale-mongo-dirs.js`). Leftovers never pile up.
+
+**End-to-end server** (`npm run e2e:server`, `scripts/e2e-server.js`): the API the client's Playwright tests run against. It starts an in-memory MongoDB, creates the accounts in `scripts/e2e-accounts.json` (they exist only in that temporary database, so they are safe to commit), sets its own variables (it does not use `.env`) and listens on port 5100, allowing the E2E client on `http://localhost:5300`. Its database lives in one fixed temp folder (`e2e-mongo-db`) that is emptied at every start, because Playwright may end the process without letting it clean up. Run it from `server/`, where the MongoDB download is cached.
 
 **Known workaround** (only in tests): `tests/helpers/db.js` passes `runtimeAdapters: { os }` to `mongoose.connect`. MongoDB driver 7.6+ loads `os` with a dynamic `import()` that fails inside Jest and breaks the connection handshake. Remove it once the driver ships the fix (NODE-7832).
 

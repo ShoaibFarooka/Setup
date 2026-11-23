@@ -7,6 +7,7 @@ Express 5 + MongoDB (Mongoose 9) API. `README.md` explains everything in detail 
 - `npm test`: all tests (in-memory MongoDB, no `.env` or database needed)
 - `npm run lint` / `npm run lint:fix`: ESLint (bugs + style)
 - `npm run dev`: start with auto-reload · `npm run seed`: create the admin account
+- `npm run e2e:server`: the API for the client's Playwright tests (in-memory database, accounts from `scripts/e2e-accounts.json`, port 5100); the client's `npm run e2e` starts it
 
 **Done means:** `npm run lint` and `npm test` both pass, with tests for the change.
 
@@ -41,6 +42,8 @@ Express 5 + MongoDB (Mongoose 9) API. `README.md` explains everything in detail 
 - Helpers: `createUser()` (`tests/helpers/user.factory.js`), `loginAs()` (`tests/helpers/auth.helper.js`), `db.connect / clear / close` (`tests/helpers/db.js`), `createCapturingLogger()` (`tests/helpers/log-capture.js`).
 - Logger methods are spied on in every test: `expect(logger.error).toHaveBeenCalledWith({ err }, 'Message')`.
 - To change a config value for one test file, change it on `config` **before** requiring the app.
+- In-memory databases left by interrupted runs are removed by `tests/setup/global-setup.js` (older than a day, not in use); keep it when changing the test setup.
+- A route the client uses in a new flow may need data in `scripts/e2e-server.js` / `scripts/e2e-accounts.json` for the client's E2E tests; change them together.
 - Keep `runtimeAdapters: { os }` in `tests/helpers/db.js` until the MongoDB driver fix NODE-7832 is released (see README).
 
 ## Style and docs

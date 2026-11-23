@@ -53,3 +53,40 @@ describe('user.service', () => {
         await expect(userService.fetchUser('1')).rejects.toMatchObject({ statusCode: 404 });
     });
 });
+
+describe('user.service updateProfile', () => {
+    afterEach(() => jest.resetAllMocks());
+
+    test('changes the name and returns the updated user', async () => {
+        userRepository.updateUserById.mockResolvedValue({ name: 'New Name' });
+
+        const user = await userService.updateProfile('user-1', { name: 'New Name' });
+
+        expect(user).toEqual({ name: 'New Name' });
+        expect(userRepository.updateUserById).toHaveBeenCalledWith('user-1', { name: 'New Name' }, expect.objectContaining({ runValidators: true }), { name: 1, username: 1, email: 1, role: 1, _id: 0 });
+        expect(userRepository.userExists).not.toHaveBeenCalled();
+    });
+
+    test('stores the email in lowercase after checking nobody else has it', async () => {
+        userRepository.userExists.mockResolvedValue(false);
+        userRepository.updateUserById.mockResolvedValue({ email: 'new@b.com' });
+
+        await userService.updateProfile('user-1', { email: ' New@B.com ' });
+
+        expect(userRepository.updateUserById).toHaveBeenCalledWith('user-1', { email: 'new@b.com' }, expect.any(Object), expect.any(Object));
+    });
+
+    test('rejects an email another account has with 409', async () => {
+        userRepository.userExists.mockResolvedValue(true);
+
+        await expect(userService.updateProfile('user-1', { email: 'taken@b.com' }))
+            .rejects.toMatchObject({ statusCode: 409, message: 'A user with that email has already been registered!' });
+        expect(userRepository.updateUserById).not.toHaveBeenCalled();
+    });
+
+    test('a user that no longer exists -> 404', async () => {
+        userRepository.updateUserById.mockResolvedValue(null);
+
+        await expect(userService.updateProfile('gone', { name: 'X' })).rejects.toMatchObject({ statusCode: 404 });
+    });
+});

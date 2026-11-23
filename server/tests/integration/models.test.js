@@ -114,4 +114,12 @@ describe('user repository', () => {
 
         expect(updated.name).toBe('New Name');
     });
+
+    test('updateUserById returns only the projected fields when a projection is given', async () => {
+        const { user } = await createUser();
+
+        const updated = await userRepository.updateUserById(user._id, { name: 'Projected' }, undefined, { name: 1, _id: 0 });
+
+        expect(updated.toJSON()).toEqual({ name: 'Projected' });
+    });
 });

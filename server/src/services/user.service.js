@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const userRepository = require('../repositories/user.repository');
 const authUtils = require('../utils/auth.util');
 
@@ -45,7 +46,31 @@ const fetchUser = async (userId) => {
     return user;
 };
 
+// Changes the logged-in user's own name and/or email; returns the updated user (public fields only)
+const updateProfile = async (userId, changes) => {
+    const update = {};
+    if (changes.name !== undefined) {
+        update.name = changes.name;
+    }
+    if (changes.email !== undefined) {
+        update.email = changes.email.trim().toLowerCase();
+        // Another account with this email (keeping your own email is fine). The $ne operator is ours, not user
+        // input, so it is marked trusted for sanitizeFilter (trusted() wraps the object that holds the operator).
+        if (await userRepository.userExists({ email: update.email, _id: mongoose.trusted({ $ne: userId }) })) {
+            throwError('A user with that email has already been registered!', 409);
+        }
+    }
+
+    const user = await userRepository.updateUserById(userId, update, { returnDocument: 'after', runValidators: true }, userProjection);
+    if (!user) {
+        throwError('User not found!', 404);
+    }
+
+    return user;
+};
+
 module.exports = {
     createUser,
     fetchUser,
+    updateProfile,
 };

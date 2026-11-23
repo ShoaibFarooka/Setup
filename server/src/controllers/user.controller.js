@@ -6,6 +6,13 @@ const fetchUserInfo = async (req, res) => {
     res.status(200).json(successBody('User fetched successfully', { user }));
 };
 
+// Body already validated (updateProfileSchema): only name and email can reach this
+const updateUserInfo = async (req, res) => {
+    const user = await userService.updateProfile(req.user.id, req.body);
+    res.status(200).json(successBody('Profile updated successfully', { user }));
+};
+
 module.exports = {
     fetchUserInfo,
+    updateUserInfo,
 };
