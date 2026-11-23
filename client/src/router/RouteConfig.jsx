@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { ALL_ROLES } from '@/constants/appConstants';
+import { ALL_ROLES, ROLES } from '@/constants/appConstants';
 import LandingRedirect from './LandingRedirect';
 
 // Each page is downloaded the first time it is opened, not with the app.
@@ -9,6 +9,7 @@ const Login = lazy(() => import('@/pages/auth/Login/Login'));
 const NotFound = lazy(() => import('@/pages/errors/NotFound/NotFound'));
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard/Dashboard'));
 const Profile = lazy(() => import('@/pages/profile/Profile/Profile'));
+const Users = lazy(() => import('@/pages/users/Users/Users'));
 
 // protected: logged-in users only; roles: the roles that may open it (required, e.g. [ROLES.admin])
 // guestOnly: visitors only (logged-in users are sent on)
@@ -19,6 +20,9 @@ const routes = [
 
     // profile
     { path: '/profile', element: <Profile />, protected: true, roles: ALL_ROLES, showSidebar: true },
+
+    // users (admins only)
+    { path: '/users', element: <Users />, protected: true, roles: [ROLES.admin], showSidebar: true },
 
     // auth
     { path: '/login', element: <Login />, guestOnly: true },

@@ -90,3 +90,20 @@ describe('app CORS', () => {
         expect(res.body).toEqual({ success: false, message: 'Not allowed by CORS' });
     });
 });
+
+describe('app HTTP basics', () => {
+    test('API answers tell browsers and proxies not to store them', async () => {
+        const res = await request(app).get('/api/does-not-exist');
+
+        expect(res.headers['cache-control']).toBe('no-store');
+    });
+
+    test('a JSON body over 100kb -> 413', async () => {
+        const res = await request(app)
+            .post('/api/auth/login')
+            .set('Content-Type', 'application/json')
+            .send(JSON.stringify({ identifier: 'x'.repeat(110 * 1024), password: 'x' }));
+
+        expect(res.status).toBe(413);
+    });
+});

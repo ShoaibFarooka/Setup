@@ -1,0 +1,2 @@
+# Root tooling (husky, lint-staged); each part has its own .gitignore
+node_modules

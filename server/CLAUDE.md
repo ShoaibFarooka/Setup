@@ -2,6 +2,8 @@
 
 Express 5 + MongoDB (Mongoose 9) API. `README.md` explains everything in detail (setup, env variables, endpoints, auth, CORS, logging, testing); read the relevant section before changing an area.
 
+**Read `../CLAUDE.md` first:** it holds the contract with the client and the approval rule. A task that would break or bend a rule here, or needs something not covered, is stopped and asked about before doing it.
+
 ## Commands
 
 - `npm test`: all tests (in-memory MongoDB, no `.env` or database needed)
@@ -9,7 +11,7 @@ Express 5 + MongoDB (Mongoose 9) API. `README.md` explains everything in detail 
 - `npm run dev`: start with auto-reload · `npm run seed`: create the admin account
 - `npm run e2e:server`: the API for the client's Playwright tests (in-memory database, accounts from `scripts/e2e-accounts.json`, port 5100); the client's `npm run e2e` starts it
 
-**Done means:** `npm run lint` and `npm test` both pass, with tests for the change.
+**Done means:** `npm run lint` and `npm test` both pass, with tests for the change. When an endpoint the client uses changes, the client's `npm test` and `npm run e2e` pass too (and `../CLAUDE.md` is updated if the contract changed).
 
 ## Architecture
 
@@ -27,7 +29,12 @@ Express 5 + MongoDB (Mongoose 9) API. `README.md` explains everything in detail 
 - **Validation:** every route that takes input gets a Yup schema in `src/validations/` and `validateRequest` / `validateParams` / `validateQuery`. Handlers use the validated `req.body` / `req.params` / `req.query`.
 - **Config:** only `src/configs/app.config.js` reads `process.env`. Everything else imports `config`. A new variable needs: the Yup schema (with `string()` / `number()` / `boolean()` helpers so empty values count as not set), the `config` object, `.env.example`, the README env table and a config test.
 - **Logging:** `logger` from `src/utils/logger.util.js`, or `req.log` inside a request (adds the request id). Fields first, short fixed message second: `logger.info({ orderId }, 'Order created')`, `logger.error({ err }, 'Payment failed')`. Never `console.*` (only exception: config startup errors).
-- **Database:** `sanitizeFilter` is on globally; operators built dynamically in our own code must be wrapped in `mongoose.trusted(...)`. Never pass raw user input as a query object.
+- **Database:** `sanitizeFilter` is on globally; operators built dynamically in our own code must be wrapped in `mongoose.trusted(...)` (around the object that holds the operator). Never pass raw user input as a query object.
+- **Lists:** every list endpoint is paginated by the contract in `../CLAUDE.md`: `validateQuery(paginationQuery({ sort, defaultSort }))` and `paginate(...)` in the repository (README "Lists and pagination"). Never return all documents; `sort` only allows indexed fields.
+- **Query performance:** read-only queries are lean; always a projection (only needed fields, never private ones); an index in the schema for every field filtered, sorted or looked up by; `populate` only needed fields and never in a loop; multi-document writes that must succeed together use a transaction.
+- **Ids in URLs:** `validateParams(idParams)` for every `:id`.
+- **Uploads:** `uploadFile(field, { maxSizeMb, types })` then `validateFile(...)`; files stay in memory, only the types the route needs, never use `originalname` as a path. Adding storage or serving files is a decision to ask about.
+- **HTTP:** `/api` answers are `Cache-Control: no-store`; JSON bodies are limited to 100kb. Changing either is a security setting (ask first).
 - **Auth:** protect routes with `authenticateRequest`, then `verifyRole([...])` when needed.
 
 ## Security

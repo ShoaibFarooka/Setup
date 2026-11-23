@@ -1,4 +1,4 @@
-import { THEMES, expect, pageReady, test } from './fixtures';
+import { THEMES, accounts, expect, pageReady, test } from './fixtures';
 
 // Screenshots compared with approved ones (e2e/__screenshots__): an unintended visual change fails the test
 // and test-results/ gets the expected, actual and diff images. After an intended design change, look at the new
@@ -9,6 +9,7 @@ const PAGES = [
     { name: '404', path: '/this-page-does-not-exist', heading: 'Page not found', loggedIn: false },
     { name: 'dashboard', path: '/dashboard', heading: 'Dashboard', loggedIn: true },
     { name: 'profile', path: '/profile', heading: 'Profile', loggedIn: true },
+    { name: 'users', path: '/users', heading: 'Users', loggedIn: true, account: 'admin', waitFor: 'Showing 20 / 28 (Page 1 of 2)' },
 ];
 
 const sizes = (projectName) => (projectName === 'desktop'
@@ -16,11 +17,11 @@ const sizes = (projectName) => (projectName === 'desktop'
     : [{ label: 'phone', viewport: null }]);
 
 for (const theme of THEMES) {
-    for (const { name, path, heading, loggedIn } of PAGES) {
+    for (const { name, path, heading, loggedIn, account, waitFor } of PAGES) {
         test(`${name} looks as approved (${theme})`, async ({ page, loginAs }, testInfo) => {
             await page.emulateMedia({ colorScheme: theme });
             if (loggedIn) {
-                await loginAs();
+                await loginAs(account ? accounts[account] : undefined);
             }
             for (const { label, viewport } of sizes(testInfo.project.name)) {
                 if (viewport) {
@@ -28,7 +29,11 @@ for (const theme of THEMES) {
                 }
                 await page.goto(path);
                 await pageReady(page, heading);
-                await expect(page).toHaveScreenshot(`${name}-${theme}-${label}.png`);
+                if (waitFor) {
+                    await expect(page.getByText(waitFor)).toBeVisible();
+                }
+                // Dates of when the test data was created change on every run: masked, so they never cause a diff
+                await expect(page).toHaveScreenshot(`${name}-${theme}-${label}.png`, { mask: [page.locator('td:last-child')] });
             }
         });
     }

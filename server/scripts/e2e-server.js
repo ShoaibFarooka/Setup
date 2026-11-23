@@ -47,6 +47,15 @@ const start = async () => {
     for (const { role, ...account } of Object.values(accounts)) {
         await userService.createUser(account, role);
     }
+    // Sample users for the admin list (more than one page). One password hash for all and one insert, so the
+    // start stays fast (hashing each would take seconds). Nobody logs in as them.
+    const User = require('../src/models/user.model');
+    const { hashPassword } = require('../src/utils/auth.util');
+    const password = await hashPassword('E2e-Sample-Pass-1');
+    await User.insertMany(Array.from({ length: 24 }, (_, i) => {
+        const n = String(i + 1).padStart(2, '0');
+        return { name: `Sample User ${n}`, username: `sample-${n}`, email: `sample-${n}@example.com`, password, role: 'user' };
+    }));
 
     const server = app.listen(config.port, config.host, (error) => {
         if (error) {

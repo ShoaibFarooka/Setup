@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { THEMES, expect, pageReady, test } from './fixtures';
+import { THEMES, accounts, expect, pageReady, test } from './fixtures';
 
 // Automatic accessibility checks (axe) of every page in both themes: contrast, labels, roles, landmarks, ...
 // Serious and critical problems fail the test; the message lists each problem and where it is.
@@ -8,6 +8,7 @@ const PAGES = [
     { name: '404', path: '/this-page-does-not-exist', heading: 'Page not found', loggedIn: false },
     { name: 'dashboard', path: '/dashboard', heading: 'Dashboard', loggedIn: true },
     { name: 'profile', path: '/profile', heading: 'Profile', loggedIn: true },
+    { name: 'users', path: '/users', heading: 'Users', loggedIn: true, account: 'admin', waitFor: 'Showing 20 / 28 (Page 1 of 2)' },
 ];
 
 const describeViolations = (violations) => violations
@@ -15,14 +16,17 @@ const describeViolations = (violations) => violations
     .join('\n');
 
 for (const theme of THEMES) {
-    for (const { name, path, heading, loggedIn } of PAGES) {
+    for (const { name, path, heading, loggedIn, account, waitFor } of PAGES) {
         test(`${name} page has no serious accessibility problems (${theme})`, async ({ page, loginAs }) => {
             await page.emulateMedia({ colorScheme: theme });
             if (loggedIn) {
-                await loginAs();
+                await loginAs(account ? accounts[account] : undefined);
             }
             await page.goto(path);
             await pageReady(page, heading);
+            if (waitFor) {
+                await expect(page.getByText(waitFor)).toBeVisible();
+            }
 
             const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
             const serious = violations.filter((violation) => ['serious', 'critical'].includes(violation.impact));

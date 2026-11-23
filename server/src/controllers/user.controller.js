@@ -12,7 +12,14 @@ const updateUserInfo = async (req, res) => {
     res.status(200).json(successBody('Profile updated successfully', { user }));
 };
 
+// Query already validated (listUsersQuery): page, limit, sort and search are clean values
+const listUsers = async (req, res) => {
+    const result = await userService.listUsers(req.query);
+    res.status(200).json(successBody('Users fetched successfully', result));
+};
+
 module.exports = {
     fetchUserInfo,
     updateUserInfo,
+    listUsers,
 };

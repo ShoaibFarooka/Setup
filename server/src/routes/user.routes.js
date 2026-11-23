@@ -2,8 +2,17 @@ const router = require('express').Router();
 
 const userController = require('../controllers/user.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
-const { validateRequest } = require('../middlewares/validation.middleware');
-const { updateProfileSchema } = require('../validations/user.validation');
+const { validateRequest, validateQuery } = require('../middlewares/validation.middleware');
+const { updateProfileSchema, listUsersQuery } = require('../validations/user.validation');
+
+// Admins only: a paginated, searchable list of users
+router.get(
+    '/',
+    authMiddleware.authenticateRequest,
+    authMiddleware.verifyRole(['admin']),
+    validateQuery(listUsersQuery),
+    userController.listUsers,
+);
 
 router.get(
     '/me',

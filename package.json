@@ -1,0 +1,12 @@
+{
+  "name": "boilerplate",
+  "private": true,
+  "description": "Tooling for the whole repository; the apps are in server/ and client/ (each with its own package.json and .lintstagedrc.json)",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.2"
+  }
+}

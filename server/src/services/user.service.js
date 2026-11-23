@@ -69,8 +69,19 @@ const updateProfile = async (userId, changes) => {
     return user;
 };
 
+// A page of users for admins; each item gets a string `id` (the client needs it as a row key) instead of `_id`
+const listUsers = async (query) => {
+    const { items, pagination } = await userRepository.listUsers(query);
+
+    return {
+        items: items.map(({ _id, ...user }) => ({ id: String(_id), ...user })),
+        pagination,
+    };
+};
+
 module.exports = {
     createUser,
     fetchUser,
     updateProfile,
+    listUsers,
 };

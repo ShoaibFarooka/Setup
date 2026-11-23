@@ -1,0 +1,16 @@
+/* The table's own scroll box: it scrolls sideways when the columns are wider than the screen */
+.scroll {
+    overflow-x: auto;
+    border-radius: inherit;
+
+    &:focus-visible {
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: -2px;
+    }
+}
+
+/* The table is at least as wide as the box, and as wide as its content needs (so it scrolls instead of squeezing) */
+.scroll :global(.ant-table table) {
+    width: max-content;
+    min-width: 100%;
+}

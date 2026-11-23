@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
+// Indexes for the fields the user list sorts by (GET /api/users); _id is part of each because paginate() adds it
+// as a tie-breaker. Username and email are indexed by `unique`.
+userSchema.index({ createdAt: -1, _id: -1 });
+userSchema.index({ name: 1, _id: 1 });
+
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;

@@ -1,0 +1,2 @@
+# Before every commit: lint (and auto-fix) only the staged files, with each part's own ESLint config
+npx lint-staged

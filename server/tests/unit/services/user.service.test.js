@@ -90,3 +90,23 @@ describe('user.service updateProfile', () => {
         await expect(userService.updateProfile('gone', { name: 'X' })).rejects.toMatchObject({ statusCode: 404 });
     });
 });
+
+describe('user.service listUsers', () => {
+    afterEach(() => jest.resetAllMocks());
+
+    test('passes the query on and gives each user a string id instead of _id', async () => {
+        const objectId = { toString: () => '6b041fac255aad3f681a41a1' };
+        userRepository.listUsers.mockResolvedValue({
+            items: [{ _id: objectId, name: 'Ada', username: 'ada', email: 'ada@b.com', role: 'user' }],
+            pagination: { page: 1, limit: 20, totalItems: 1, totalPages: 1 },
+        });
+
+        const result = await userService.listUsers({ page: 1, limit: 20, sort: '-createdAt' });
+
+        expect(userRepository.listUsers).toHaveBeenCalledWith({ page: 1, limit: 20, sort: '-createdAt' });
+        expect(result).toEqual({
+            items: [{ id: '6b041fac255aad3f681a41a1', name: 'Ada', username: 'ada', email: 'ada@b.com', role: 'user' }],
+            pagination: { page: 1, limit: 20, totalItems: 1, totalPages: 1 },
+        });
+    });
+});

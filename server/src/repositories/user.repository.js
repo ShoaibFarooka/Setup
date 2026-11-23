@@ -1,9 +1,20 @@
 const User = require('../models/user.model');
+const { paginate, searchFilter } = require('../utils/pagination.util');
 
 const createUser = (data) => User.create(data);
 
-const findUserById = (userId, projection = null, options = {}) =>
+// Lean by default (a plain object, faster): every caller only reads the user
+const findUserById = (userId, projection = null, options = { lean: true }) =>
     User.findById(userId, projection, options);
+
+// One page of users; search matches name, username or email (case-insensitive "contains")
+const listUsers = ({ search, page, limit, sort }) => paginate(User, {
+    filter: searchFilter(search, ['name', 'username', 'email']),
+    projection: { name: 1, username: 1, email: 1, role: 1, createdAt: 1 },
+    page,
+    limit,
+    sort,
+});
 
 const userExists = (filter) => User.exists(filter);
 
@@ -24,6 +35,7 @@ const updateUserById = (userId, update, options = { returnDocument: 'after', run
 module.exports = {
     createUser,
     findUserById,
+    listUsers,
     userExists,
     findUserByLoginWithPassword,
     updateUserById,

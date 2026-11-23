@@ -114,7 +114,7 @@ server/
 │   ├── repositories/        The only code that talks to Mongoose (queries)
 │   ├── models/              Mongoose schemas (User, Session)
 │   ├── validations/         Yup schemas for request bodies, params and queries
-│   ├── middlewares/         request logging, auth, validation, rate limits, trimming, error handler
+│   ├── middlewares/         request logging, auth, validation, uploads, rate limits, trimming, error handler
 │   ├── database/            MongoDB connection with retry, global Mongoose settings
 │   ├── seeders/             One-off scripts (npm run seed)
 │   ├── templates/           Templates for emails, PDFs, ... (e.g. Handlebars); empty for now
@@ -134,7 +134,7 @@ server/
 
 ```
 request
-  → app.js middleware      (request log + id, JSON, cookies, CORS, helmet, compression, trim; rate limit on /api)
+  → app.js middleware      (request log + id, JSON up to 100kb, cookies, CORS, helmet, compression, trim; no-store and rate limit on /api)
   → route                  (routes/*.routes.js)
   → route middleware       (authenticateRequest, verifyRole, validateRequest, loginLimiter, ...)
   → controller             (controllers/*.controller.js)
@@ -191,12 +191,77 @@ router.get('/', validateQuery(schemas.listSchema), controller.list);            
 
 - Fields the schema does not list are rejected (`400`, `errors.unknownFields`).
 - After validation, `req.body` / `req.params` / `req.query` hold the **validated values** (trimmed, converted: `?page=2` becomes the number `2`).
-- `validateFile({ required })` checks an upload added by multer (max 10MB, images only). multer itself is not installed yet.
+- A MongoDB id in the URL: `validateParams(idParams)` (`src/validations/common.validation.js`), so a malformed id gets a clear `400` before reaching the database.
+- Uploads: see "File uploads" below.
+
+### Lists and pagination
+
+Every list endpoint is paginated (the contract is in `../CLAUDE.md`): `?page=1&limit=20&sort=-createdAt&search=text` → `data: { items, pagination: { page, limit, totalItems, totalPages } }`. Never return all documents of a collection.
+
+```js
+// validations: the allowed sorts (indexed fields only) and the default
+const listProductsQuery = paginationQuery({ sort: ['name', '-name', 'createdAt', '-createdAt'], defaultSort: '-createdAt' });
+
+// route
+router.get('/', authenticateRequest, validateQuery(listProductsQuery), productController.list);
+
+// repository: paginate() reads lean, counts in parallel, sorts with _id as a tie-breaker (stable pages)
+const listProducts = ({ search, page, limit, sort }) => paginate(Product, {
+    filter: searchFilter(search, ['name', 'sku']),   // escaped, case-insensitive "contains"
+    projection: { name: 1, price: 1, createdAt: 1 },
+    page, limit, sort,
+});
+```
+
+- `limit` is at most 100 (default 20); `sort` only accepts the values you list, so nobody sorts by an unindexed or private field.
+- A page after the last one is `items: []`, not a `404`.
+- Every field you sort or filter by needs an index in the model (`schema.index({ createdAt: -1, _id: -1 })`), including `_id` as the tie-breaker.
+- `searchFilter` uses a regular expression, which is fine for small and medium collections. For large ones (hundreds of thousands of documents), use a MongoDB text index or Atlas Search instead.
+- The example is `GET /api/users` (`user.validation.js`, `user.repository.js`, `tests/integration/users-list.test.js`).
 
 ### Database queries
 
 - Only repositories use Mongoose models.
-- `sanitizeFilter` is on globally: query operators coming from user input (e.g. `{ $ne: null }`) are treated as plain values, which blocks NoSQL injection. If your own code builds an operator dynamically, wrap it: `User.find({ age: mongoose.trusted({ $gte: minAge }) })`.
+- `sanitizeFilter` is on globally: query operators coming from user input (e.g. `{ $ne: null }`) are treated as plain values, which blocks NoSQL injection. If your own code builds an operator dynamically, wrap it: `User.find({ age: mongoose.trusted({ $gte: minAge }) })`. `trusted()` wraps the object that holds the operator, not the whole filter.
+- **Performance:**
+  - **Read-only queries are lean** (`.lean()`, or `{ lean: true }` in the options): plain objects instead of Mongoose documents, much faster. Use a full document only when you change it and call `save()`.
+  - **Always a projection:** ask only for the fields you need, and never send private ones (`password` is `select: false`).
+  - **Index every field you filter, sort or look up by,** declared in the model's schema. `unique` fields are indexed already.
+  - **`populate`** only the fields you need (`populate('author', 'name')`), and never inside a loop. One query with `$in` beats one query per item.
+  - **Writes to several documents that must succeed or fail together** go in a transaction (`mongoose.startSession()`, `session.withTransaction(...)`); this needs a replica set (Atlas has one).
+- **Updates** with `findByIdAndUpdate` apply a projection only through `.select()` (see `updateUserById`), not through its options.
+
+### File uploads
+
+`uploadFile(field, { maxSizeMb, types })` (`src/middlewares/upload.middleware.js`, multer) reads one file from a `multipart/form-data` request **into memory**: `req.file` has `buffer`, `mimetype`, `size` and `originalname`. Nothing is written to disk; the route decides where the file goes (a cloud bucket such as S3, a folder, the database).
+
+```js
+router.post(
+    '/me/avatar',
+    authenticateRequest,
+    uploadFile('avatar', { maxSizeMb: 2, types: ['image/png', 'image/jpeg', 'image/webp'] }),
+    validateFile({ required: true }),
+    userController.updateAvatar,
+);
+```
+
+- Too large or the wrong type: `400` with a clear message; the size limit stops reading early, so large uploads cost nothing.
+- Allow only the types you need, and never trust `originalname` as a file path: generate your own names.
+- Serving uploaded files is not set up (a decision per project: usually a bucket with signed URLs or a CDN).
+- Tests: `tests/integration/upload.test.js` shows how to test an upload route with supertest's `.attach()`.
+
+### Sending email
+
+`sendEmail(to, subject, text, html, cc, bcc)` (`src/services/email.service.js`, nodemailer) sends email when `EMAIL_ENABLED=true` and the `EMAIL_*` / `SENDER_*` variables are set. When email is disabled it logs an error and throws `Email is not configured!` (`500`), so a feature that needs email fails loudly instead of silently.
+
+- Call it from a service, never from a controller.
+- When the email is a side effect (a "welcome" message), catch and log a failure instead of failing the whole request. When the email *is* the point (for example "forgot password"), let the error reach the client.
+- Email templates go in `src/templates/`.
+
+### HTTP caching and body size
+
+- Every `/api` response has `Cache-Control: no-store`: answers are personal or change often, so browsers and proxies must not keep copies.
+- JSON bodies are limited to **100kb** (larger: `413`). Files go through `uploadFile`, which has its own limit.
 
 ### Logging
 
@@ -255,6 +320,7 @@ Protect routes with `authenticateRequest`, and restrict by role with `verifyRole
 | `POST` | `/api/auth/refresh-token` | refresh cookie | New access token; the refresh token is replaced |
 | `POST` | `/api/auth/logout` | refresh cookie | Ends this device's session |
 | `POST` | `/api/auth/logout-all` | access token | Ends the sessions of every device |
+| `GET` | `/api/users` | access token, **admin** | Paginated list of users: `?page`, `limit` (max 100), `sort` (`name`, `-name`, `createdAt`, `-createdAt`), `search` (name, username or email) |
 | `GET` | `/api/users/me` | access token | The logged-in user |
 | `PATCH` | `/api/users/me` | access token | Change your own `name` and / or `email` (other fields, such as `role`, are refused); `409` when the email belongs to another account |
 

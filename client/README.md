@@ -24,6 +24,8 @@ React web app boilerplate for the [server](../server/README.md): login with mult
 - [Theme (light and dark)](#theme-light-and-dark)
 - [Motion and states](#motion-and-states)
 - [Styling](#styling)
+- [Performance](#performance)
+- [Security](#security)
 - [Testing](#testing)
 - [End-to-end tests](#end-to-end-tests)
 - [Linting and formatting](#linting-and-formatting)
@@ -94,7 +96,7 @@ client/
 │   │   ├── ui/              The UI kit, app-agnostic: Button, Input, FormField, Card, Table, Modal, toast, ... (index.js)
 │   │   ├── layout/          The frame of the app: AppLayout, Sidebar, AuthContainer, PageHeader
 │   │   └── ...              Other app pieces: ErrorBoundary, Loader, ConnectionError, BrandLogo, ThemeToggle
-│   ├── pages/               One folder per feature (auth/, errors/, dashboard/, profile/), one subfolder per page
+│   ├── pages/               One folder per feature (auth/, errors/, dashboard/, profile/, users/), one subfolder per page
 │   ├── router/              RouteConfig.jsx (the routes), Router.jsx, ProtectedRoute / GuestRoute (access), LandingRedirect.jsx (/ → start page)
 │   ├── constants/           App name, role labels, menu per role
 │   ├── validations/         Yup schemas for forms, one file per feature (authValidations.js)
@@ -234,12 +236,13 @@ The steps for a new feature, with `products` (a list and a create form) as the e
 1. **Service:** `src/services/productService.js`, one function per server route:
    ```js
    export const productService = {
-       list: () => api.get('/api/products').then((data) => data.products),
+       // A paginated list: { items, pagination } (contract in ../CLAUDE.md)
+       list: (params) => api.get('/api/products', { params }),
        create: (product) => api.post('/api/products', product).then((data) => data.product),
    };
    ```
-2. **Query keys:** add `products: { all: ['products'], list: ['products', 'list'] }` to `hooks/queryKeys.js`.
-3. **Hooks:** `hooks/useProducts.js` (`useQuery`) and `hooks/useCreateProduct.js` (`useMutation` that invalidates `queryKeys.products.all` on success).
+2. **Query keys:** add `products: { all: ['products'], list: (params) => ['products', 'list', params] }` to `hooks/queryKeys.js`.
+3. **Hooks:** `hooks/useProducts.js` (`useQuery` with `keepPreviousData`, like `useUsers`) and `hooks/useCreateProduct.js` (`useMutation` that invalidates `queryKeys.products.all` on success). The list page follows "Lists with pagination" below.
 4. **Validation:** `src/validations/productValidations.js` with a Yup schema for the create form (mirroring the server's rules).
 5. **Page:** `pages/products/Products/Products.jsx` with `PageHeader` and parts from `@/components/ui` (`Card`, `Table`, `FormField`, `Button`, ...), using the hooks and `validateForm(productSchema, values)`; show `isPending` (`Skeleton` / `Spinner`) and `isError` (`EmptyState` / `Alert`) states.
 6. **Route and menu:** add it to `router/RouteConfig.jsx` with `lazy()` and the `roles` that may open it, and to those roles' menus in `constants/menuItems.jsx` if it should appear in the sidebar.
@@ -247,42 +250,35 @@ The steps for a new feature, with `products` (a list and a create form) as the e
 
 ## Lists with pagination
 
-`components/PaginationHandler` shows "Showing 10 / 95 (Page 3 of 10)" with previous / page numbers / next buttons. It only displays pages and reports clicks; the page number lives in the page component and goes into the query, so every page is its own cached request.
+Every list follows the pagination contract in `../CLAUDE.md`: the client sends `?page=1&limit=20&sort=-createdAt&search=text`, the server answers `data: { items, pagination: { page, limit, totalItems, totalPages } }`.
 
-Example for a server route answering `data: { products, pagination: { page, totalPages, totalCount } }` (the server has no paginated route yet; adapt the names to the one you add):
+**The working example is the admin Users page** (`/users`, admins only): copy it for a new list.
 
-```js
-// services/productService.js
-list: ({ page, limit }) => api.get('/api/products', { params: { page, limit } }),
+| Piece | File | What it does |
+|---|---|---|
+| Service | `userService.list(params)` | `GET /api/users` with the parameters (empty ones left out of the URL) |
+| Query key | `queryKeys.users.list(params)` | each page / search / sort is cached on its own |
+| Hook | `hooks/useUsers.js` | `useQuery` with `placeholderData: keepPreviousData`: the current page stays on screen while the next one loads (`isPlaceholderData` is then true) |
+| URL state | `hooks/useListParams.js` | page, search and sort live in the address (`?page=2&search=ada&sort=name`), so reload, back button and shared links show the same list. A new search or sort goes back to page 1; page and sort changes are history steps, typing a search is not |
+| Search | `hooks/useDebouncedValue.js` | the request waits until typing stops (300ms): one request per word, not per letter |
+| Page | `pages/users/Users/Users.jsx` | search box, sort, `Table`, `PaginationHandler`, and every state: `Skeleton` on the first load, the table dimmed while the next page loads, `EmptyState` text when nothing matches, an `Alert` with **Try again** on errors |
+| Tests | `tests/integration/users.test.jsx`, `e2e/users.spec.js` | paging, search (and that it sends one request), sort, the address, errors, other roles |
 
-// hooks/queryKeys.js
-products: { all: ['products'], list: (params) => ['products', 'list', params] },
-
-// hooks/useProducts.js
-const useProducts = ({ page, limit = 10 }) => useQuery({
-    queryKey: queryKeys.products.list({ page, limit }),
-    queryFn: () => productService.list({ page, limit }),
-    placeholderData: keepPreviousData,   // keep showing the current page while the next one loads
-});
-
-// pages/products/Products/Products.jsx
-const [page, setPage] = useState(1);
-const { data, isPending, isError } = useProducts({ page });
-
-{data && (
-    <PaginationHandler
-        count={data.products.length}
-        totalCount={data.pagination.totalCount}
-        pageIndex={data.pagination.page}
-        totalPages={data.pagination.totalPages}
-        handlePageChange={setPage}
-    />
-)}
-```
+`components/ui/PaginationHandler` shows "Showing 20 / 28 (Page 1 of 2)" with previous / page numbers / next buttons. It only displays pages and reports clicks.
 
 - Pages start at 1. Previous / next are disabled on the first / last page; clicking the current page does nothing.
-- It is accessible: real buttons ("Previous page", "Page 3", "Next page") inside `<nav aria-label="Pagination">`, with `aria-current="page"` on the current page, so tests find them by role and name.
-- Keep the page in the URL instead (`useSearchParams`) when a page should survive a reload or be shareable.
+- It is accessible: real buttons ("Previous page", "Page 3", "Next page") inside `<nav aria-label="Pagination">`, with `aria-current="page"` on the current page.
+- Hide it when there is nothing to page through (`totalItems === 0`).
+
+**Rules for list pages**
+
+1. The server pages the data; never fetch everything and page in the browser.
+2. Page, search, sort and filters live in the URL (`useListParams`), never only in component state.
+3. Search inputs are debounced (`useDebouncedValue`).
+4. Query keys include every parameter; use `keepPreviousData`.
+5. Every state is designed: first load, loading the next page, empty (with the search in the message), error with a retry.
+6. Changing search, sort or a filter goes back to page 1.
+7. Very long lists that must show many rows at once are virtualized (Ant Design `Table` has `virtual`), not rendered all at once.
 
 ## UI components
 
@@ -446,6 +442,36 @@ Other notes:
 - Branding: the brand palette in `styles/theme.css`, `APP_NAME` in `constants/appConstants.js`, `<title>` in `index.html`, `components/BrandLogo`, and the icons in `public/`: `favicon.svg` (sharp, has a dark-mode version), `favicon.ico` (16 / 32 / 48px, for older browsers) and `apple-touch-icon.png` (180×180, iOS home screens; a full square, iOS rounds the corners). When the logo changes, regenerate the PNG / ICO from the SVG (any SVG-to-ICO tool, or a browser screenshot at those sizes).
 - Tests should not depend on class names (find elements by role and name). When a test must check a style state, import the module and compare with its class: `expect(nav).toHaveClass(styles.open)`.
 
+## Performance
+
+What is in place: pages load on first use (`lazy()`), each package is its own cached file (`manualChunks` in `vite.config.js`), server data is cached and shared (TanStack Query, 30s fresh), lists are paged on the server, search is debounced, spinners wait before showing, the font is bundled.
+
+**Size budget:** the first page downloads about **230 KB of JavaScript (gzip)**, mostly React, the router, TanStack Query, axios and Ant Design's runtime (about 130 KB of it). Keep it **under 250 KB**. `npm run build` prints every file's size: compare before and after a change that adds code to the first page.
+
+Ant Design's runtime loads on every page because `UiProvider` themes it. That is accepted for now; if the budget gets tight, the options are loading Ant Design only when one of its components is first used, or replacing its remaining wrappers (Modal, toast, Tooltip, Dropdown, Tabs, Table) with own ones.
+
+**Rules**
+
+1. **New dependencies need approval** (see `../CLAUDE.md`): say what it adds to the bundle (`npm run build` before / after, or bundlephobia.com) and why nothing existing does the job. Prefer small, tree-shakable packages; import only what you use (`import { debounce } from 'x'`, not the whole library).
+2. **Heavy parts load on demand,** not just pages: charts, rich-text editors, maps, PDF viewers go behind `lazy()` inside the page that uses them.
+3. **Images:** `loading="lazy"` below the fold, a `width` and `height` (or `aspect-ratio`) so the page does not jump, a size close to how big they are shown, and a modern format (WebP / AVIF) where possible.
+4. **Lists:** paged on the server; virtualized when many rows must be on screen at once.
+5. **No `memo` / `useMemo` / `useCallback` by default.** Add them where profiling (React DevTools Profiler) shows a slow render, not "just in case".
+6. **No request waterfalls:** queries that don't depend on each other run in parallel (several hooks in the same component do); don't fetch in a child what the parent could fetch together.
+
+## Security
+
+What is in place: the access token lives in memory only, the refresh token is an httpOnly cookie, every request goes through one client that handles 401 / refresh, React escapes what it renders, and the server sends security headers and no-store caching.
+
+**Rules**
+
+1. **Never `dangerouslySetInnerHTML`.** If HTML from users or the server must really be shown, sanitize it first (DOMPurify) and ask before adding it.
+2. **Links to other sites** use `rel="noopener noreferrer"` (with `target="_blank"`).
+3. **Never log tokens or personal data** (no `console.log` of responses with emails, names, tokens); remove debug logging before committing.
+4. **Redirects only go to paths inside the app** (as `GuestRoute` does with the page asked for), never to a URL taken from the address or a response.
+5. **No secrets in the client:** everything in `VITE_` variables and in the code is visible to anyone using the app.
+6. The server is the authority: hiding a button or a page is for convenience; the server checks the role on every request.
+
 ## Testing
 
 ```bash
@@ -479,21 +505,12 @@ npx playwright show-report                   # the HTML report of the last run
 |---|---|
 | `auth.spec.js` | logging in (right, wrong, empty), returning to the page asked for, the session surviving a reload, logging out, "log out of all devices" ending another device's session |
 | `access.spec.js` | visitors sent to login, the 404 page, each role's pages and details, sidebar navigation and the phone menu drawer |
+| `users.spec.js` | the admin users list: pages, search (also after a reload), no matches; other roles without access |
 | `profile.spec.js` | editing the profile: saving and seeing the change everywhere (also after a reload), an email of another account refused, invalid values |
 | `a11y.spec.js` | axe accessibility checks of every page and the edit dialog, in light and dark; serious or critical problems fail |
 | `visual.spec.js` | screenshots compared with the approved ones in `e2e/__screenshots__`: every page at 1440px, 768px and phone size, the dialogs and the phone menu, light and dark |
 
 **Writing tests:** import `test`, `expect`, `accounts`, `pageReady` from `e2e/fixtures.js`. `loginAs(account)` logs in through the API (each test gets its own session; the server replaces the refresh token on every use, so a shared saved login would not work); `openMenu()` opens the phone drawer. Find elements by role and name, as in the unit tests. The accounts are in `server/scripts/e2e-accounts.json` and only exist in the E2E server's temporary database.
-
-**Screenshots:**
-
-- A visual test fails when a page looks different from its approved screenshot; `test-results/` then has the expected, actual and diff images.
-- After an intended change, `npm run e2e:update` saves the new ones. **Look at them before committing**: an approved screenshot is a promise that the page looks right.
-- Screenshots are stored per operating system (`-win32`, `-linux`, ...), because fonts render slightly differently. In CI they are usually made inside Playwright's Docker image so they match exactly.
-- Animations are turned off and the web font is awaited, so runs are stable. Up to 100 differing pixels are allowed (a fixed count, not a percentage, so even a small new button in a corner fails the test).
-- Assertions wait up to 10 seconds: logging in hashes the password on a real server, which takes a moment on a busy machine.
-
-**Disk:** `test-results/` and `playwright-report/` are replaced on every run (and git-ignored). The E2E server keeps its database in one fixed temp folder that every run empties. The Chromium download (in `%LOCALAPPDATA%\ms-playwright` on Windows) is shared by all projects.
 
 ## Linting and formatting
 

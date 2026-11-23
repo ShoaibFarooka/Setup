@@ -43,7 +43,8 @@ const validateRequest = (schema) => validate(schema, 'body');
 const validateParams = (schema) => validate(schema, 'params');
 const validateQuery = (schema) => validate(schema, 'query');
 
-// Checks the file added by multer (req.file): required or not, at most 10MB, images only
+// Checks the file read by uploadFile (src/middlewares/upload.middleware.js, req.file): required or not,
+// at most 10MB, images only. uploadFile already enforces its own size and type limits; this adds "required".
 const validateFile = (options) => (req, res, next) => {
     const { required } = options;
     try {

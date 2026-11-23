@@ -45,7 +45,9 @@ describe('Table', () => {
     const columns = [{ key: 'name', title: 'Name', dataIndex: 'name' }];
 
     test('shows a row per item', () => {
-        renderUi(<Table columns={columns} data={[{ id: 1, name: 'Chair' }, { id: 2, name: 'Desk' }]} />);
+        renderUi(<Table label="Products" columns={columns} data={[{ id: 1, name: 'Chair' }, { id: 2, name: 'Desk' }]} />);
+
+        expect(screen.getByRole('region', { name: 'Products' })).toHaveAttribute('tabindex', '0');
 
         expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
         expect(screen.getByRole('cell', { name: 'Chair' })).toBeInTheDocument();

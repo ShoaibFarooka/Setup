@@ -42,7 +42,8 @@ const corsOptionsDelegate = (req, callback) => {
 
 // First, so every request (even one rejected later, e.g. by CORS or malformed JSON) is logged with its id
 app.use(requestLogger);
-app.use(express.json());
+// Explicit limit for JSON bodies (larger ones get 413); files go through the upload middleware, not JSON
+app.use(express.json({ limit: '100kb' }));
 // Express 5 leaves req.body undefined when a request has no JSON body; validation and controllers expect {}
 app.use((req, res, next) => {
     req.body ??= {};
@@ -64,6 +65,11 @@ app.get(`${config.apiPrefix}/health`, (req, res) => {
         : errorBody('Database is disconnected', { data }));
 });
 
+// API answers are personal or change often: browsers and proxies must not store them
+app.use(config.apiPrefix, (req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+});
 app.use(config.apiPrefix, apiLimiter);
 app.use(config.apiPrefix, routes);
 
