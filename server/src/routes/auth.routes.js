@@ -2,7 +2,7 @@ const router = require('express').Router();
 
 const authController = require('../controllers/auth.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
-const { loginLimiter } = require('../middlewares/rate-limit.middleware');
+const { loginLimiter, forgotPasswordLimiter, resetPasswordLimiter } = require('../middlewares/rate-limit.middleware');
 const validationMiddleware = require('../middlewares/validation.middleware');
 const authValidations = require('../validations/auth.validation');
 
@@ -27,6 +27,20 @@ router.post(
     '/logout-all',
     authMiddleware.authenticateRequest,
     authController.logoutAll,
+);
+
+router.post(
+    '/forgot-password',
+    forgotPasswordLimiter,
+    validationMiddleware.validateRequest(authValidations.forgotPasswordSchema),
+    authController.forgotPassword,
+);
+
+router.post(
+    '/reset-password',
+    resetPasswordLimiter,
+    validationMiddleware.validateRequest(authValidations.resetPasswordSchema),
+    authController.resetPassword,
 );
 
 module.exports = router;

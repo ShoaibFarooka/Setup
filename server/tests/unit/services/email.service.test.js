@@ -4,7 +4,7 @@ const config = require('../../../src/configs/app.config');
 const transporter = require('../../../src/configs/email.config');
 const logger = require('../../../src/utils/logger.util');
 const { AppError } = require('../../../src/utils/app-error.util');
-const { sendEmail } = require('../../../src/services/email.service');
+const { sendEmail, sendTemplateEmail } = require('../../../src/services/email.service');
 
 describe('email.service sendEmail', () => {
     beforeEach(() => {
@@ -46,6 +46,31 @@ describe('email.service sendEmail', () => {
             bcc: 'bcc@example.com',
         }));
         expect(transporter.sendMail.mock.calls[0][0]).not.toHaveProperty('text');
+    });
+
+    test('sendTemplateEmail sends the HTML (in the email layout) and the plain-text version of a template', async () => {
+        transporter.sendMail.mockResolvedValue({ messageId: '1' });
+
+        await sendTemplateEmail({
+            to: 'ada@example.com',
+            subject: 'Reset your password',
+            template: 'reset-password',
+            data: { name: 'Ada', resetUrl: 'http://localhost:5200/reset-password?token=abc', expiresInMinutes: 30 },
+            bcc: 'audit@example.com',
+        });
+
+        const mail = transporter.sendMail.mock.calls[0][0];
+        expect(mail).toMatchObject({ from: 'noreply@example.com', to: 'ada@example.com', subject: 'Reset your password', bcc: 'audit@example.com' });
+        expect(mail.html).toContain('<title>Reset your password</title>');
+        expect(mail.html).toContain(config.appName);
+        expect(mail.html).toContain('Hi Ada,');
+        expect(mail.text).toContain('Hi Ada,');
+        expect(mail.text).not.toContain('<');
+    });
+
+    test('sendTemplateEmail with an unknown template throws before anything is sent', async () => {
+        await expect(sendTemplateEmail({ to: 'a@example.com', subject: 'x', template: 'nope' })).rejects.toThrow(/ENOENT/);
+        expect(transporter.sendMail).not.toHaveBeenCalled();
     });
 
     test('a failed send -> 500 AppError and the cause is logged', async () => {

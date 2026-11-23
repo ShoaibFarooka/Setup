@@ -14,4 +14,10 @@ export const authService = {
 
     // Ends the sessions of every device
     logoutAll: () => api.post('/api/auth/logout-all'),
+
+    // { email } -> null. The server answers the same whether the account exists or not
+    forgotPassword: (data) => api.post('/api/auth/forgot-password', data, { skipAuth: true, skipRefresh: true }),
+
+    // { token, password } -> null. Ends every session of the account
+    resetPassword: (data) => api.post('/api/auth/reset-password', data, { skipAuth: true, skipRefresh: true }),
 };

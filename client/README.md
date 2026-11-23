@@ -171,6 +171,7 @@ There is no Redux: server data does not belong in a global store, and the rest i
 - **Page load:** the access token is gone after a reload, so `AuthProvider` calls `/api/auth/refresh-token` once. A valid cookie restores the session; otherwise the visitor sees the login page. Meanwhile protected pages show a loader (`status: 'checking'`).
 - **Expired access token:** a request answered with 401 triggers one refresh, then is sent again. Requests failing at the same time share that refresh (the server replaces the refresh token on every refresh, so a second one would fail). If refreshing fails, the session ends and the login page opens.
 - **Logout:** `useLogout()` → `logout.mutate()` (this device) or `logout.mutate({ allDevices: true })` (every device). This device is logged out even if the server call fails. On every logout the TanStack Query cache is cleared, so the next user never sees the previous user's data.
+- **Forgot password:** "Forgot password?" on the login page opens `/forgot-password` (`useForgotPassword`), which asks the server to email a reset link and then always shows the same "Check your email" message (it never says whether the account exists). The link opens `/reset-password?token=...` (`useResetPassword`): the new password twice (`resetPasswordSchema`, the confirmation never leaves the browser), then the server ends every session of the account, the session in this browser ends too, and the login page opens. An invalid, used or expired link shows why, with "Request a new link". `/reset-password` is open to everyone (neither `protected` nor `guestOnly`), so the emailed link works in a browser where someone is logged in.
 
 ## Form validation
 
@@ -205,12 +206,14 @@ const Profile = lazy(() => import('@/pages/profile/Profile/Profile'));
 { path: '/profile', element: <Profile />, protected: true, roles: ALL_ROLES, showSidebar: true },   // logged-in users
 { path: '/users/:id', element: <UserDetails />, protected: true, roles: [ROLES.admin] },            // admins only
 { path: '/login', element: <Login />, guestOnly: true },                                             // visitors only
+{ path: '/reset-password', element: <ResetPassword /> },                                             // everyone
 { path: '*', element: <NotFound /> },                                                                // everyone
 ```
 
 - **Layout routes** (`router/Router.jsx`): the routes are grouped under the session check and the layout, which render once and **stay mounted while moving between pages**; only the page inside (React Router's `<Outlet />`) changes. So the sidebar, its state and the user are not rebuilt on every navigation.
   - `protected` pages sit under `router/ProtectedRoute.jsx`, which waits for the session and the user and sends visitors to login (and back to the page afterwards). Inside it, `components/layout/AppLayout` draws the sidebar (for routes with `showSidebar`) and the content area, and `router/RequireRole.jsx` shows **Access denied** for roles without the page.
   - `guestOnly` pages sit under `router/GuestRoute.jsx`, which sends logged-in users on.
+  - Pages that are neither (404, reset password) open for everyone, logged in or not.
   - Every page goes through `router/PageFrame.jsx`: its error boundary, the loader while its code downloads, and the entry animation.
 - **Keyboard and screen readers:** the first link on app pages is **Skip to content** (visible when focused), which jumps over the sidebar. After moving to another page, focus goes to the new page's `<h1>`, so screen readers announce the change (single-page apps don't do this by themselves). Every page therefore starts with one `<h1>` (`PageHeader` renders it).
 - **Access by role** is the route's `roles` (required for protected routes; a protected route without it is open to no one). Roles are in `ROLES` / `ALL_ROLES` (`constants/appConstants.js`) and match the server's (`admin`, `user`); labels are in `ROLE_LABELS`.
@@ -292,7 +295,7 @@ The simple components are our own (CSS Modules + theme tokens), so every project
 
 | Group | Components | Built on |
 |---|---|---|
-| Actions | `Button` (primary, secondary, ghost, ghostInverse for brand-coloured areas, danger, dangerOutline; sm/md/lg; `loading`), `IconButton` (icon only, `label` required), `DropdownMenu` | own; DropdownMenu: Ant Design |
+| Actions | `Button` (primary, secondary, ghost, ghostInverse for brand-coloured areas, danger, dangerOutline; sm/md/lg; `loading`), `IconButton` (icon only, `label` required), `TextLink` (a link in text: `to` for a page of the app, `href` for another site, opened safely in a new tab; primary/muted), `DropdownMenu` | own; DropdownMenu: Ant Design |
 | Forms | `FormField` (label + control + hint + error, linked for screen readers), `Input`, `PasswordInput`, `Textarea`, `Select` (native), `Checkbox`, `RadioGroup`, `Switch` | own |
 | Content | `Card` (`title`, `actions`, `padding`), `DescriptionList`, `Table`, `Tabs`, `Badge`, `Avatar`, `Divider`, `PaginationHandler` | own; Table, Tabs: Ant Design |
 | Feedback | `Alert`, `EmptyState` (empty lists, 404, errors), `Spinner`, `Skeleton`, `Tooltip`, `Modal`, `toast.success/error/warning/info()`, `confirm({ title, confirmText, danger, onConfirm })` | own; Tooltip, Modal, toast, confirm: Ant Design |
@@ -506,11 +509,24 @@ npx playwright show-report                   # the HTML report of the last run
 | `auth.spec.js` | logging in (right, wrong, empty), returning to the page asked for, the session surviving a reload, logging out, "log out of all devices" ending another device's session |
 | `access.spec.js` | visitors sent to login, the 404 page, each role's pages and details, sidebar navigation and the phone menu drawer |
 | `users.spec.js` | the admin users list: pages, search (also after a reload), no matches; other roles without access |
+| `password-reset.spec.js` | forgot password end to end: the email the server wrote, its link, the new password logging in and the old one refused, the link working only once; an unknown email; a link without a token |
 | `profile.spec.js` | editing the profile: saving and seeing the change everywhere (also after a reload), an email of another account refused, invalid values |
 | `a11y.spec.js` | axe accessibility checks of every page and the edit dialog, in light and dark; serious or critical problems fail |
 | `visual.spec.js` | screenshots compared with the approved ones in `e2e/__screenshots__`: every page at 1440px, 768px and phone size, the dialogs and the phone menu, light and dark |
 
 **Writing tests:** import `test`, `expect`, `accounts`, `pageReady` from `e2e/fixtures.js`. `loginAs(account)` logs in through the API (each test gets its own session; the server replaces the refresh token on every use, so a shared saved login would not work); `openMenu()` opens the phone drawer. Find elements by role and name, as in the unit tests. The accounts are in `server/scripts/e2e-accounts.json` and only exist in the E2E server's temporary database.
+
+**Emails:** the E2E server sends nothing; it writes every email to a temporary folder (`<temp>/e2e-outbox/<recipient>.json`, the newest per recipient). `clearEmail(to)` forgets the last one, `readEmail(to)` waits for the next and returns `{ to, subject, text, html }` (see `password-reset.spec.js`). A test that changes an account (password, "log out everywhere") gets its own account and runs on one project only.
+
+**Screenshots:**
+
+- A visual test fails when a page looks different from its approved screenshot; `test-results/` then has the expected, actual and diff images.
+- After an intended change, `npm run e2e:update` saves the new ones. **Look at them before committing**: an approved screenshot is a promise that the page looks right.
+- Screenshots are stored per operating system (`-win32`, `-linux`, ...), because fonts render slightly differently. In CI they are usually made inside Playwright's Docker image so they match exactly.
+- Animations are turned off and the web font is awaited, so runs are stable. Up to 100 differing pixels are allowed (a fixed count, not a percentage, so even a small new button in a corner fails the test).
+- Assertions wait up to 10 seconds: logging in hashes the password on a real server, which takes a moment on a busy machine.
+
+**Disk:** `test-results/` and `playwright-report/` are replaced on every run (and git-ignored). The E2E server keeps its database in one fixed temp folder that every run empties. The Chromium download (in `%LOCALAPPDATA%\ms-playwright` on Windows) is shared by all projects.
 
 ## Linting and formatting
 

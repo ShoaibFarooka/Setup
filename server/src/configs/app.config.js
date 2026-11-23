@@ -52,6 +52,14 @@ const envSchema = yup.object({
     EMAIL_SECURE: boolean().default(false),
     SENDER_EMAIL: requiredWhenEmailEnabled(string().email('must be a valid email')),
     SENDER_EMAIL_PASSWORD: requiredWhenEmailEnabled(string()),
+    // Where the browser app runs, for links in emails (the password reset link). Not set: the local client in
+    // development; required in production when email is enabled
+    CLIENT_URL: string()
+        .matches(ORIGIN_PATTERN, 'must be an origin like https://app.example.com (no path or trailing slash)')
+        .when(['EMAIL_ENABLED', 'NODE_ENV'], {
+            is: (enabled, nodeEnv) => enabled && nodeEnv === 'production',
+            then: (s) => s.required('is required when EMAIL_ENABLED=true in production'),
+        }),
 });
 
 let env;
@@ -68,6 +76,8 @@ const isProduction = env.NODE_ENV === 'production';
 const DEFAULT_LOG_LEVELS = { development: 'debug', production: 'info', test: 'silent' };
 
 const config = {
+    // Shown in emails and PDFs; keep it the same as APP_NAME in client/src/constants/appConstants.js
+    appName: 'My App',
     env: env.NODE_ENV,
     isProduction,
     port: env.PORT,
@@ -77,11 +87,22 @@ const config = {
     apiPrefix: '/api',
     databaseUri: env.DB_URI,
     allowedOrigins: splitList(env.CORS_ORIGINS ?? (isProduction ? '' : DEFAULT_DEV_ORIGINS)),
+    clientUrl: env.CLIENT_URL ?? (isProduction ? undefined : DEFAULT_DEV_ORIGINS),
     rateLimit: {
         windowMs: 15 * 60 * 1000,
         max: 1000,
         // Failed login attempts per IP; successful logins do not count
         login: {
+            windowMs: 15 * 60 * 1000,
+            max: 10,
+        },
+        // "Forgot password" requests per IP and email address, so nobody can flood one inbox with reset emails
+        forgotPassword: {
+            windowMs: 15 * 60 * 1000,
+            max: 5,
+        },
+        // Failed password resets (unknown or expired links) per IP; successful ones do not count
+        resetPassword: {
             windowMs: 15 * 60 * 1000,
             max: 10,
         },
@@ -93,6 +114,8 @@ const config = {
         accessTokenExpiryTime: env.ACCESS_TOKEN_EXPIRY_TIME,
         refreshTokenSecret: env.REFRESH_TOKEN_SECRET,
         refreshTokenExpiryTime: env.REFRESH_TOKEN_EXPIRY_TIME,
+        // How long a password reset link works
+        passwordResetExpiryMinutes: 30,
     },
     admin: {
         name: env.ADMIN_NAME,

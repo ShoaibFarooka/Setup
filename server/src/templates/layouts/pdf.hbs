@@ -1,0 +1,21 @@
+{{!-- The frame of every PDF. Rendered by headless Chrome (src/services/pdf.service.js), so normal CSS works.
+      Nothing is loaded from the network: images and fonts must be inline (data: URLs). --}}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{{title}}</title>
+    <style>
+        body { margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.5; color: #0F172A; }
+        h1 { margin: 0 0 4px; font-size: 22px; }
+        .meta { margin: 0 0 24px; color: #5B6478; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; border-bottom: 1px solid #E4E7EE; text-align: left; }
+        th { background-color: #F4F5F9; }
+        tr { break-inside: avoid; }
+    </style>
+</head>
+<body>
+    {{{body}}}
+</body>
+</html>

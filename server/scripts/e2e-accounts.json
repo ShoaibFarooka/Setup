@@ -2,5 +2,6 @@
     "admin": { "name": "E2E Admin", "username": "e2e-admin", "email": "e2e-admin@example.com", "password": "E2e-Admin-Pass-1", "role": "admin" },
     "user": { "name": "E2E User", "username": "e2e-user", "email": "e2e-user@example.com", "password": "E2e-User-Pass-1", "role": "user" },
     "editor": { "name": "E2E Editor", "username": "e2e-editor", "email": "e2e-editor@example.com", "password": "E2e-Editor-Pass-1", "role": "user" },
-    "logoutAll": { "name": "E2E Logout All", "username": "e2e-logout-all", "email": "e2e-logout-all@example.com", "password": "E2e-Logout-Pass-1", "role": "user" }
+    "logoutAll": { "name": "E2E Logout All", "username": "e2e-logout-all", "email": "e2e-logout-all@example.com", "password": "E2e-Logout-Pass-1", "role": "user" },
+    "reset": { "name": "E2E Reset", "username": "e2e-reset", "email": "e2e-reset@example.com", "password": "E2e-Reset-Pass-1", "role": "user" }
 }

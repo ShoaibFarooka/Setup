@@ -1,4 +1,4 @@
-/* Shared layout of the auth pages' forms (login now; register, forgot password later).
+/* Shared layout of the auth pages' forms (login, forgot password, reset password).
    The fields and buttons themselves come from components/ui. */
 .form {
     width: 348px;
@@ -28,6 +28,23 @@
 
 .submit {
     margin-top: var(--space-8);
+}
+
+/* A link under a field, e.g. "Forgot password?" under the password */
+.fieldLink {
+    align-self: flex-end;
+    margin-top: calc(var(--space-2) * -1);
+}
+
+/* A message above the fields or in place of the form (sent, link expired) */
+.alert {
+    margin-top: var(--space-6);
+    text-align: start;
+}
+
+/* "Back to log in" under the form */
+.footer {
+    margin-top: var(--space-6);
 }
 
 @media (max-width: 768px) {

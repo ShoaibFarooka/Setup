@@ -1,5 +1,9 @@
+const crypto = require('node:crypto');
+const config = require('../configs/app.config');
 const userRepository = require('../repositories/user.repository');
 const sessionRepository = require('../repositories/session.repository');
+const passwordResetRepository = require('../repositories/password-reset.repository');
+const emailService = require('./email.service');
 const authUtils = require('../utils/auth.util');
 
 const { throwError } = require('../utils/app-error.util');
@@ -84,9 +88,62 @@ const logoutAllDevices = async (userId) => {
     await sessionRepository.deleteSessionsByUserId(userId);
 };
 
+// "Forgot password": emails a single-use link to reset the password. The caller always answers the same way,
+// whether the account exists or not, so the form cannot be used to find out who has an account.
+const requestPasswordReset = async (email) => {
+    // Checked first, for every request: failing only for existing accounts would reveal them
+    if (!config.email.enabled) {
+        throwError('Email is not configured!', 500);
+    }
+
+    const user = await userRepository.findUserByEmail(email, { name: 1, email: 1 });
+    if (!user) {
+        return;
+    }
+
+    // Only the newest link works; the token itself is only in the email, the database keeps its hash
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresInMinutes = config.auth.passwordResetExpiryMinutes;
+    await passwordResetRepository.deletePasswordResetsByUserId(user._id);
+    await passwordResetRepository.createPasswordReset({
+        user: user._id,
+        tokenHash: authUtils.hashToken(token),
+        expiresAt: new Date(Date.now() + expiresInMinutes * 60 * 1000),
+    });
+
+    // Not awaited: the answer takes as long for an unknown email as for a known one (waiting for the mail
+    // server would reveal the account by timing). sendEmail logs a failure itself.
+    emailService.sendTemplateEmail({
+        to: user.email,
+        subject: 'Reset your password',
+        template: 'reset-password',
+        data: { name: user.name, resetUrl: `${config.clientUrl}/reset-password?token=${token}`, expiresInMinutes },
+    }).catch(() => {});
+};
+
+// Sets a new password with the token from the reset link, then ends every session: whoever might have known
+// the old password is logged out everywhere
+const resetPassword = async ({ token, password }) => {
+    const reset = await passwordResetRepository.consumePasswordReset(authUtils.hashToken(token));
+    if (!reset) {
+        throwError('This reset link is invalid or has expired', 400);
+    }
+
+    const passwordDigest = await authUtils.hashPassword(password);
+    const user = await userRepository.updateUserById(reset.user, { password: passwordDigest }, {}, { _id: 1 });
+    if (!user) {
+        throwError('This reset link is invalid or has expired', 400);
+    }
+
+    await passwordResetRepository.deletePasswordResetsByUserId(reset.user);
+    await sessionRepository.deleteSessionsByUserId(reset.user);
+};
+
 module.exports = {
     loginUser,
     refreshToken,
     logoutUser,
     logoutAllDevices,
+    requestPasswordReset,
+    resetPassword,
 };

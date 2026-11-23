@@ -24,7 +24,8 @@ Unit tests run in jsdom: no layout, no media queries, no real server. They canno
 - **Looks:** `e2e/visual.spec.js` compares screenshots with the approved ones in `e2e/__screenshots__` (desktop 1440 and 768px, a phone; light and dark). A new page or a new menu or dialog goes into it.
   - **An unintended difference is a bug:** read the expected, actual and diff images in `test-results/`, and fix the cause.
   - **After an intended change:** run `npm run e2e:update`, then **open and read every new or changed screenshot** before saying the work is done. Never update screenshots without looking at them.
-- **Data:** never confirm actions on shared accounts that would disturb other tests running in parallel (for example "log out everywhere": it has its own account and runs on one project only).
+- **Data:** never confirm actions on shared accounts that would disturb other tests running in parallel (for example "log out everywhere" and the password reset: each has its own account and runs on one project only). A new account in `e2e-accounts.json` means one sample user fewer in `e2e-server.js` (the lists expect 28 users).
+- **Emails:** the E2E server writes them to a temporary outbox instead of sending; read them with `clearEmail(to)` / `readEmail(to)` from `e2e/fixtures.js`.
 - **Report** what was run, which screenshots you looked at, what you found and fixed, and anything not covered.
 - **Exploring something the tests don't reach** (a hover state, a long text): use a connected browser tool (Claude in Chrome), or a temporary Playwright script in your scratchpad, and delete it afterwards.
 
@@ -78,7 +79,7 @@ Unit tests run in jsdom: no layout, no media queries, no real server. They canno
 The UI must stay restylable per project: every control and building block comes from `components/ui`.
 
 - Import from `@/components/ui` (the index) only. Never import `antd` outside `components/ui`, and never a ui component's own file; ESLint refuses both.
-- No raw styled `<button>`, `<input>`, `<select>` or card markup in pages: use `Button`, `IconButton`, `FormField` + `Input`/`PasswordInput`/`Select`/..., `Card`, `EmptyState`, `toast`, `confirm`, ...
+- No raw styled `<button>`, `<input>`, `<select>`, link or card markup in pages: use `Button`, `IconButton`, `TextLink`, `FormField` + `Input`/`PasswordInput`/`Select`/..., `Card`, `EmptyState`, `toast`, `confirm`, ...
 - Missing a component: add it to `ui/` (own component if simple, an Ant Design wrapper if complex), export it from `ui/index.js`, test it in `tests/unit/ui/`, add it to the README table.
 - ui components are app-agnostic (props in, callbacks out; no API calls, routes or feature hooks). App-specific pieces built from them: the app's frame in `components/layout/` (AppLayout, Sidebar, AuthContainer, PageHeader), other shared pieces directly in `components/`, parts used by one page in that page's own `components/`.
 - Variants via props (`variant`, `size`, `tone`); a page's `className` on a ui component is for layout only, never colours or shapes.

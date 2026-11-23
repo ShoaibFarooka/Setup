@@ -1,0 +1,15 @@
+{{!-- An example PDF (copy it for a real one, then delete it): renderPdf('sample-report', { title, generatedAt, rows }) --}}
+<h1>{{title}}</h1>
+<p class="meta">{{appName}} · generated {{generatedAt}}</p>
+<table>
+    <thead>
+        <tr><th>Name</th><th>Email</th></tr>
+    </thead>
+    <tbody>
+        {{#each rows}}
+            <tr><td>{{name}}</td><td>{{email}}</td></tr>
+        {{else}}
+            <tr><td colspan="2">Nothing to show</td></tr>
+        {{/each}}
+    </tbody>
+</table>

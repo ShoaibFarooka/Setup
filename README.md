@@ -4,8 +4,8 @@ A full-stack starting point for web apps: an **Express 5 + MongoDB API** and a *
 
 **What you get**
 
-- **Auth:** login by email or username, short-lived access tokens kept in memory, rotating refresh tokens in httpOnly cookies, sessions per device, "log out everywhere", roles (`admin`, `user`).
-- **Server:** one response shape for every request, validation on every route, paginated lists, file uploads, structured logs with request ids, rate limits, CORS, no-store caching, graceful shutdown.
+- **Auth:** login by email or username, short-lived access tokens kept in memory, rotating refresh tokens in httpOnly cookies, sessions per device, "log out everywhere", forgot / reset password by email, roles (`admin`, `user`).
+- **Server:** one response shape for every request, validation on every route, paginated lists, file uploads, emails and PDFs from Handlebars templates, structured logs with request ids, rate limits, CORS, no-store caching, graceful shutdown.
 - **Client:** TanStack Query data layer, protected routes by role, paginated and searchable lists kept in the URL, an own UI kit (Ant Design only for complex parts), light / dark / system theme, responsive layout, accessible by default.
 - **Tests:** unit and integration tests on both sides, plus Playwright end-to-end tests against the real API (user flows, accessibility checks, visual screenshots in both themes on desktop and phone).
 - **Docs for people and AI agents:** a `README.md` and a `CLAUDE.md` in each part.
@@ -30,7 +30,7 @@ npm install
 # 1. Server: http://127.0.0.1:5000
 cd server
 npm install
-cp .env.example .env      # fill in DB_URI, the two token secrets and the ADMIN_* account
+cp .env.example .env      # fill in DB_URI, the two token secrets and the ADMIN_* account (EMAIL_* for "forgot password")
 npm run seed              # creates the admin account
 npm run dev
 

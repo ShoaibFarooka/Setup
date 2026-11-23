@@ -97,6 +97,7 @@ All variables are read and validated in **one place**: `src/configs/app.config.j
 | `EMAIL_PORT` | | `587` | |
 | `EMAIL_SECURE` | | `false` | `true` for port 465 |
 | `SENDER_EMAIL` / `SENDER_EMAIL_PASSWORD` | if email enabled | | SMTP login, also the "from" address |
+| `CLIENT_URL` | in production if email enabled | `http://localhost:5200` outside production | Where the browser app runs (an origin, no trailing slash); links in emails point there (password reset) |
 
 To add a variable: add it to the schema in `app.config.js`, expose it on the `config` object, and document it in `.env.example` and here.
 
@@ -112,13 +113,13 @@ server/
 │   ├── controllers/         HTTP only: read the request, call a service, send the response
 │   ├── services/            Business rules; throw AppError when something is not allowed
 │   ├── repositories/        The only code that talks to Mongoose (queries)
-│   ├── models/              Mongoose schemas (User, Session)
+│   ├── models/              Mongoose schemas (User, Session, PasswordReset)
 │   ├── validations/         Yup schemas for request bodies, params and queries
 │   ├── middlewares/         request logging, auth, validation, uploads, rate limits, trimming, error handler
 │   ├── database/            MongoDB connection with retry, global Mongoose settings
 │   ├── seeders/             One-off scripts (npm run seed)
-│   ├── templates/           Templates for emails, PDFs, ... (e.g. Handlebars); empty for now
-│   └── utils/               AppError, response wrapper, tokens and hashing, logger (pino)
+│   ├── templates/           Handlebars templates: layouts/, partials/, emails/, pdfs/ (see "Emails and PDFs")
+│   └── utils/               AppError, response wrapper, tokens and hashing, logger (pino), templates, pagination
 ├── static/                  Files the server may serve as they are; empty for now
 │   └── images/
 └── tests/
@@ -250,13 +251,39 @@ router.post(
 - Serving uploaded files is not set up (a decision per project: usually a bucket with signed URLs or a CDN).
 - Tests: `tests/integration/upload.test.js` shows how to test an upload route with supertest's `.attach()`.
 
-### Sending email
+### Emails and PDFs
 
-`sendEmail(to, subject, text, html, cc, bcc)` (`src/services/email.service.js`, nodemailer) sends email when `EMAIL_ENABLED=true` and the `EMAIL_*` / `SENDER_*` variables are set. When email is disabled it logs an error and throws `Email is not configured!` (`500`), so a feature that needs email fails loudly instead of silently.
+Both are built from **Handlebars templates** in `src/templates/`, rendered by `renderTemplate()` (`src/utils/template.util.js`). Never build HTML strings in code.
 
-- Call it from a service, never from a controller.
-- When the email is a side effect (a "welcome" message), catch and log a failure instead of failing the whole request. When the email *is* the point (for example "forgot password"), let the error reach the client.
-- Email templates go in `src/templates/`.
+```
+src/templates/
+├── layouts/   email.hbs (the frame of every email), pdf.hbs (of every PDF); they print the page with {{{body}}}
+├── partials/  shared pieces, used by file name: {{> button url=resetUrl label="Reset password"}}
+├── emails/    <name>.hbs (HTML) + <name>.text.hbs (plain text) per email, e.g. reset-password
+└── pdfs/      <name>.hbs per PDF; sample-report.hbs is an example to copy (then delete it)
+```
+
+- `{{value}}` is HTML-escaped, so data from users is safe to print; `{{{value}}}` is not escaped and is only for HTML we produce ourselves. Plain-text templates (`.text.hbs`) are never escaped.
+- Every template gets `appName` (`config.appName`; keep it the same as the client's `APP_NAME`). Emails also get `subject`.
+- Compiled templates are cached; in development they are read again on every use, so edits show without a restart.
+
+**Sending email.** `sendTemplateEmail({ to, subject, template, data, cc, bcc })` (`src/services/email.service.js`) renders `emails/<template>.hbs` inside `layouts/email.hbs` plus `emails/<template>.text.hbs`, and sends both through `sendEmail(to, subject, text, html, cc, bcc)` (nodemailer). Email is sent when `EMAIL_ENABLED=true` and the `EMAIL_*` / `SENDER_*` variables are set; when it is disabled, `sendEmail` logs an error and throws `Email is not configured!` (`500`), so a feature that needs email fails loudly instead of silently.
+
+- Call them from a service, never from a controller.
+- Email programs ignore `<style>` blocks and most modern CSS: email templates use inline styles and tables (see `layouts/email.hbs`).
+- When the email is a side effect (a "welcome" message), catch and log a failure instead of failing the whole request. When the email *is* the point, let the error reach the client, unless that would reveal private facts: "forgot password" sends after answering, so neither the answer nor its timing tells whether an account exists.
+
+**Building a PDF.** `renderPdf(template, data, options)` (`src/services/pdf.service.js`) renders `pdfs/<template>.hbs` inside `layouts/pdf.hbs` and prints it with headless Chrome ([Puppeteer](https://pptr.dev)), returning a `Buffer`; `htmlToPdf(html, options)` prints any HTML. Options are Puppeteer's [`page.pdf()`](https://pptr.dev/api/puppeteer.pdfoptions) options (default A4, backgrounds on, 16–20mm margins).
+
+```js
+const pdf = await renderPdf('sample-report', { title: 'Users', generatedAt, rows });
+res.type('application/pdf').attachment('users.pdf').send(pdf);
+```
+
+- Normal CSS works (it is Chrome). **Nothing is loaded from the network or the disk** and JavaScript is off, so data printed into a template can never make the server fetch an address: put images and fonts in as `data:` URLs.
+- One browser is started on the first PDF and reused (about a second to start); each PDF gets its own tab, closed afterwards. `closePdfBrowser()` ends it on shutdown (`index.js`).
+- `npm install` downloads Puppeteer's Chrome (several hundred MB, into `~/.cache/puppeteer`). On a Linux server or in a container, Chrome needs its system libraries (see Puppeteer's [troubleshooting](https://pptr.dev/troubleshooting)); never turn off Chrome's sandbox (`--no-sandbox`) without a container that isolates it.
+- Puppeteer stays on version 24: version 25 is published as ES modules only, which Jest cannot load without an experimental Node flag.
 
 ### HTTP caching and body size
 
@@ -320,11 +347,13 @@ Protect routes with `authenticateRequest`, and restrict by role with `verifyRole
 | `POST` | `/api/auth/refresh-token` | refresh cookie | New access token; the refresh token is replaced |
 | `POST` | `/api/auth/logout` | refresh cookie | Ends this device's session |
 | `POST` | `/api/auth/logout-all` | access token | Ends the sessions of every device |
+| `POST` | `/api/auth/forgot-password` | | Body: `{ email }`. Emails a reset link when the account exists; the answer is the same either way. `500` when email is not configured |
+| `POST` | `/api/auth/reset-password` | | Body: `{ token, password }` (token from the link). Sets the new password and ends every session; `400` when the link is invalid, expired or used |
 | `GET` | `/api/users` | access token, **admin** | Paginated list of users: `?page`, `limit` (max 100), `sort` (`name`, `-name`, `createdAt`, `-createdAt`), `search` (name, username or email) |
 | `GET` | `/api/users/me` | access token | The logged-in user |
 | `PATCH` | `/api/users/me` | access token | Change your own `name` and / or `email` (other fields, such as `role`, are refused); `409` when the email belongs to another account |
 
-Rate limits: 1000 requests per 15 minutes per IP on `/api`; 10 **failed** logins per 15 minutes per IP on `/api/auth/login`.
+Rate limits: 1000 requests per 15 minutes per IP on `/api`; 10 **failed** logins per 15 minutes per IP on `/api/auth/login`; 5 "forgot password" requests per 15 minutes per IP **and email address** (nobody can flood one inbox, and people behind one office IP can each ask for their own link); 10 **failed** password resets per 15 minutes per IP.
 
 ## Authentication
 
@@ -332,7 +361,8 @@ Rate limits: 1000 requests per 15 minutes per IP on `/api`; 10 **failed** logins
 - **Refresh token** (JWT, default 7 days): stored in an `httpOnly` cookie the browser sends automatically; JavaScript cannot read it.
 - **Sessions**: every login creates a document in the `sessions` collection, so each device stays logged in independently. Only a SHA-256 hash of the refresh token is stored. Refreshing replaces the token; the old one stops working at once. Expired sessions are deleted by MongoDB automatically (TTL index).
 - **Logout** ends one device; **logout-all** ends every device. Access tokens already issued stay valid until they expire (at most `ACCESS_TOKEN_EXPIRY_TIME`), because they are checked without a database lookup.
-- Passwords are hashed with bcrypt (cost 12).
+- Passwords are hashed with bcrypt (cost 12). A new password (reset) has 8–72 characters with a letter and a number (`passwordRule` in `src/validations/auth.validation.js`); bcrypt only uses 72 bytes, so longer ones are refused instead of silently cut.
+- **Forgot password**: `forgot-password` creates a random token (32 bytes), stores only its SHA-256 hash in `passwordresets` (TTL index, valid for `config.auth.passwordResetExpiryMinutes`, 30 by default) and emails `CLIENT_URL/reset-password?token=...` (template `emails/reset-password`). Only the newest link works. The answer is the same whether the email has an account or not, and the email is sent after answering, so neither the answer nor its timing reveals accounts. `reset-password` takes the token and deletes it in the same step (`findOneAndDelete`: a link works once, even when used twice at the same moment), saves the new password and ends every session of the account.
 
 ## CORS
 
@@ -408,7 +438,8 @@ For fixes on save in VS Code, install the **ESLint** extension (and **EditorConf
 - **HTTPS is required**, otherwise the browser will not store the refresh cookie.
 - `SameSite=Strict` means the client and API must be on the **same site** (e.g. `app.example.com` and `api.example.com` are fine; `example.com` and `example-api.net` are not).
 - `CORS_ORIGINS=https://your-frontend-domain` (no other origin is allowed in production by default).
+- `CLIENT_URL=https://your-frontend-domain` when email is enabled (reset links point there).
 - `TRUST_PROXY=1` (or the number of proxies) when running behind Nginx, a load balancer or a hosting platform, so rate limits apply per visitor and the server knows requests arrived over HTTPS (needed for the CORS same-origin check and `req.protocol`).
 - Generate new secrets for production; never reuse development ones.
 - `HOST=0.0.0.0` if the server must be reachable from outside the machine or container.
-- **Running more than one instance** (several containers or processes behind a load balancer): rate limits are counted in memory, separately in each instance, so with 3 instances the login limit becomes 30 failed attempts instead of 10. Give both limiters in `src/middlewares/rate-limit.middleware.js` a shared store such as Redis ([`rate-limit-redis`](https://www.npmjs.com/package/rate-limit-redis)). With a single instance nothing needs to change.
+- **Running more than one instance** (several containers or processes behind a load balancer): rate limits are counted in memory, separately in each instance, so with 3 instances the login limit becomes 30 failed attempts instead of 10. Give the limiters in `src/middlewares/rate-limit.middleware.js` a shared store such as Redis ([`rate-limit-redis`](https://www.npmjs.com/package/rate-limit-redis)). With a single instance nothing needs to change.

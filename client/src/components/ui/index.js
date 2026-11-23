@@ -4,6 +4,7 @@
 // Actions
 export { default as Button } from './Button/Button';
 export { default as IconButton } from './IconButton/IconButton';
+export { default as TextLink } from './TextLink/TextLink';
 export { default as DropdownMenu } from './DropdownMenu/DropdownMenu';
 
 // Forms

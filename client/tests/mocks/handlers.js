@@ -1,5 +1,5 @@
 import { http } from 'msw';
-import { API, VALID_CREDENTIALS, failure, preflight, success, testUser } from './responses';
+import { API, VALID_CREDENTIALS, VALID_RESET_TOKEN, failure, preflight, success, testUser } from './responses';
 
 // 25 users for the admin list, newest first by default; the list route pages, searches and sorts them like the
 // server does (the pagination contract in ../../../CLAUDE.md)
@@ -68,4 +68,17 @@ export const handlers = [
     http.post(`${API}/api/auth/logout`, () => success(null, 'Logged out successfully')),
 
     http.post(`${API}/api/auth/logout-all`, () => success(null, 'Logged out from all devices successfully')),
+
+    // Like the server: the same answer for every address
+    http.post(`${API}/api/auth/forgot-password`, () => (
+        success(null, 'If an account exists for that email, we have sent a link to reset the password')
+    )),
+
+    // Only VALID_RESET_TOKEN works
+    http.post(`${API}/api/auth/reset-password`, async ({ request }) => {
+        const { token } = await request.json();
+        return token === VALID_RESET_TOKEN
+            ? success(null, 'Your password has been changed. Log in with the new password')
+            : failure(400, 'This reset link is invalid or has expired');
+    }),
 ];

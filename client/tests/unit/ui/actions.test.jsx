@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Button, IconButton, Spinner } from '@/components/ui';
+import { MemoryRouter } from 'react-router-dom';
+import { Button, IconButton, Spinner, TextLink } from '@/components/ui';
 
 describe('Button', () => {
     test('is a plain button by default, so it never submits a form by accident', async () => {
@@ -66,5 +67,29 @@ describe('Spinner', () => {
         render(<Spinner decorative />);
 
         expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+});
+
+describe('TextLink', () => {
+    test('with `to` it is a link inside the app', () => {
+        render(<MemoryRouter><TextLink to="/forgot-password">Forgot password?</TextLink></MemoryRouter>);
+
+        const link = screen.getByRole('link', { name: 'Forgot password?' });
+        expect(link).toHaveAttribute('href', '/forgot-password');
+        expect(link).not.toHaveAttribute('target');
+    });
+
+    test('with `href` it opens another site in a new tab without access to this one', () => {
+        render(<TextLink href="https://example.com">Docs</TextLink>);
+
+        const link = screen.getByRole('link', { name: 'Docs' });
+        expect(link).toHaveAttribute('target', '_blank');
+        expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    });
+
+    test('passes other props to the link', () => {
+        render(<TextLink href="https://example.com" aria-describedby="hint">Docs</TextLink>);
+
+        expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute('aria-describedby', 'hint');
     });
 });

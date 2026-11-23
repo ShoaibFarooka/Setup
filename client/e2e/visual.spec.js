@@ -6,6 +6,9 @@ import { THEMES, accounts, expect, pageReady, test } from './fixtures';
 // Runs per project: desktop at 1440px and 768px, mobile (a phone) at its own size.
 const PAGES = [
     { name: 'login', path: '/login', heading: 'Log into your Account', loggedIn: false },
+    { name: 'forgot-password', path: '/forgot-password', heading: 'Reset your password', loggedIn: false },
+    // Any token shows the form; it is only checked when the form is sent
+    { name: 'reset-password', path: `/reset-password?token=${'a'.repeat(64)}`, heading: 'Set a new password', loggedIn: false },
     { name: '404', path: '/this-page-does-not-exist', heading: 'Page not found', loggedIn: false },
     { name: 'dashboard', path: '/dashboard', heading: 'Dashboard', loggedIn: true },
     { name: 'profile', path: '/profile', heading: 'Profile', loggedIn: true },

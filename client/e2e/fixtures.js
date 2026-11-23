@@ -1,4 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test as base, expect } from '@playwright/test';
 
 export const API = 'http://localhost:5100';
@@ -35,6 +37,20 @@ export const test = base.extend({
 export const pageReady = async (page, heading) => {
     await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
     await page.evaluate(() => document.fonts.ready);
+};
+
+// The E2E server does not send emails: it writes each one to this folder as <recipient>.json (the newest per
+// recipient). Same folder as OUTBOX_PATH in server/scripts/e2e-server.js.
+const OUTBOX = join(tmpdir(), 'e2e-outbox');
+
+// Forget the last email to this address, so readEmail() waits for a new one
+export const clearEmail = (to) => rmSync(join(OUTBOX, `${to}.json`), { force: true });
+
+// readEmail(to) -> { to, subject, text, html }: waits for the email to arrive (it is sent after the API answers)
+export const readEmail = async (to) => {
+    const file = join(OUTBOX, `${to}.json`);
+    await expect.poll(() => existsSync(file), { message: `an email to ${to}` }).toBe(true);
+    return JSON.parse(readFileSync(file, 'utf8'));
 };
 
 export { expect };

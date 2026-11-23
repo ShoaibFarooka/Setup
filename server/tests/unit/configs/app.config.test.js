@@ -151,4 +151,30 @@ describe('app.config', () => {
         expect(config.isProduction).toBe(true);
         expect(config.allowedOrigins).toEqual([]);
     });
+
+    describe('CLIENT_URL (links in emails)', () => {
+        const emailEnv = { EMAIL_ENABLED: 'true', EMAIL_HOST: 'smtp.example.com', SENDER_EMAIL: 'a@example.com', SENDER_EMAIL_PASSWORD: 'x' };
+
+        test('without it, development links to the local client and production has none', () => {
+            expect(loadConfig({ NODE_ENV: 'development', CLIENT_URL: undefined }).clientUrl).toBe('http://localhost:5200');
+            expect(loadConfig({ NODE_ENV: 'production', CLIENT_URL: undefined }).clientUrl).toBeUndefined();
+        });
+
+        test('is used when set', () => {
+            expect(loadConfig({ CLIENT_URL: 'https://app.example.com' }).clientUrl).toBe('https://app.example.com');
+        });
+
+        test('exits when it is not an origin (a path or trailing slash)', () => {
+            expect(expectExit({ CLIENT_URL: 'https://app.example.com/' })).toMatch('CLIENT_URL must be an origin');
+        });
+
+        test('is required in production when email is enabled', () => {
+            expect(expectExit({ ...emailEnv, NODE_ENV: 'production', CLIENT_URL: undefined }))
+                .toMatch('CLIENT_URL is required when EMAIL_ENABLED=true in production');
+        });
+
+        test('is optional in development even with email enabled', () => {
+            expect(loadConfig({ ...emailEnv, NODE_ENV: 'development', CLIENT_URL: undefined }).clientUrl).toBe('http://localhost:5200');
+        });
+    });
 });

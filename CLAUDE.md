@@ -69,6 +69,8 @@ Every server response, success or failure, has the same shape (`server/src/utils
 - `POST /api/auth/login` `{ identifier, password }` → `data: { token, sessionExpiresAt }` + httpOnly `refreshToken` cookie.
 - `POST /api/auth/refresh-token` (cookie) → new token + new cookie; the old refresh token stops working (rotation).
 - `POST /api/auth/logout` (cookie) ends this device; `POST /api/auth/logout-all` (access token) ends every device.
+- `POST /api/auth/forgot-password` `{ email }` → always the same `200` answer (never reveals whether the account exists); emails a link to `<CLIENT_URL>/reset-password?token=<64 hex>`, valid 30 minutes and once. `500` when email is not configured.
+- `POST /api/auth/reset-password` `{ token, password }` → `200`, ends every session of the account and clears the cookie; `400` with "This reset link is invalid or has expired" for an unknown, used or expired token. New passwords: 8–72 characters with a letter and a number (server `passwordRule`, client `resetPasswordSchema`).
 - `GET /api/users/me` (access token) → `data: { user: { name, username, email, role } }`.
 - `GET /api/users` (access token, **admin only**) → a paginated list of users (see "Lists and pagination"); `search` matches name, username or email; `sort` is one of `name`, `-name`, `createdAt`, `-createdAt` (default `-createdAt`). Each item: `{ id, name, username, email, role, createdAt }`.
 - `PATCH /api/users/me` (access token) `{ name?, email? }` → `data: { user }` (same shape); other fields are refused (`400`, `errors.unknownFields`), an email of another account is `409`.

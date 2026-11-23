@@ -37,3 +37,6 @@ export const preflight = () => new HttpResponse(null, {
 export const testUser = { name: 'Test Admin', username: 'admin', email: 'admin@example.com', role: 'admin' };
 
 export const VALID_CREDENTIALS = { identifier: 'admin', password: 'Admin123!' };
+
+// The token of a working reset link (the server's are 64 hex characters)
+export const VALID_RESET_TOKEN = 'a'.repeat(64);

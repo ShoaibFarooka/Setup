@@ -14,12 +14,17 @@ const CLIENT_ORIGIN = 'http://localhost:5300';
 // One fixed database folder, emptied at every start: Playwright may end this process without letting it
 // clean up (on Windows it is killed outright), and a fixed folder means at most one leftover, never a pile
 const DB_PATH = path.join(os.tmpdir(), 'e2e-mongo-db');
+// Emails are not sent: each one is written here as <recipient>.json (the newest per recipient), so the tests can
+// read a reset link. client/e2e/fixtures.js reads the same folder.
+const OUTBOX_PATH = path.join(os.tmpdir(), 'e2e-outbox');
 
 const start = async () => {
     // Leftovers of earlier runs that were killed before they could clean up
     removeStaleMongoDirs();
     fs.rmSync(DB_PATH, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
     fs.mkdirSync(DB_PATH, { recursive: true });
+    fs.rmSync(OUTBOX_PATH, { recursive: true, force: true });
+    fs.mkdirSync(OUTBOX_PATH, { recursive: true });
     const mongo = await MongoMemoryServer.create({ instance: { dbPath: DB_PATH } });
 
     // Set before the config loads; dotenv never overwrites variables that are already set
@@ -32,7 +37,12 @@ const start = async () => {
         DB_URI: mongo.getUri(),
         ACCESS_TOKEN_SECRET: 'e2e-access-secret-at-least-32-characters-long',
         REFRESH_TOKEN_SECRET: 'e2e-refresh-secret-at-least-32-characters-long',
-        EMAIL_ENABLED: 'false',
+        // Enabled, so "forgot password" works; the transporter is replaced below, nothing reaches this host
+        EMAIL_ENABLED: 'true',
+        EMAIL_HOST: 'smtp.e2e.invalid',
+        SENDER_EMAIL: 'no-reply@example.com',
+        SENDER_EMAIL_PASSWORD: 'e2e-not-used',
+        CLIENT_URL: CLIENT_ORIGIN,
         LOG_LEVEL: process.env.LOG_LEVEL || 'warn',
     });
 
@@ -41,18 +51,24 @@ const start = async () => {
     const connectDB = require('../src/database/connection');
     const userService = require('../src/services/user.service');
     const logger = require('../src/utils/logger.util');
+    const transporter = require('../src/configs/email.config');
+    transporter.sendMail = async (mail) => {
+        fs.writeFileSync(path.join(OUTBOX_PATH, `${mail.to}.json`), JSON.stringify(mail));
+        return { messageId: `e2e-${Date.now()}` };
+    };
     const app = require('../src/app');
 
     await connectDB(config.databaseUri);
     for (const { role, ...account } of Object.values(accounts)) {
         await userService.createUser(account, role);
     }
-    // Sample users for the admin list (more than one page). One password hash for all and one insert, so the
-    // start stays fast (hashing each would take seconds). Nobody logs in as them.
+    // Sample users for the admin list: 28 users with the accounts (more than one page; the E2E tests expect 28,
+    // so remove one here when adding an account). One password hash for all and one insert, so the start stays
+    // fast (hashing each would take seconds). Nobody logs in as them.
     const User = require('../src/models/user.model');
     const { hashPassword } = require('../src/utils/auth.util');
     const password = await hashPassword('E2e-Sample-Pass-1');
-    await User.insertMany(Array.from({ length: 24 }, (_, i) => {
+    await User.insertMany(Array.from({ length: 23 }, (_, i) => {
         const n = String(i + 1).padStart(2, '0');
         return { name: `Sample User ${n}`, username: `sample-${n}`, email: `sample-${n}@example.com`, password, role: 'user' };
     }));
@@ -74,6 +90,7 @@ const start = async () => {
         server.close();
         await mongoose.disconnect();
         await mongo.stop({ doCleanup: true, force: true });
+        fs.rmSync(OUTBOX_PATH, { recursive: true, force: true });
         process.exit(0);
     };
     process.on('SIGINT', stop);

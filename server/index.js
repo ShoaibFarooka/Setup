@@ -2,6 +2,7 @@ const config = require('./src/configs/app.config');
 const connectDB = require('./src/database/connection');
 const { disconnectDB } = require('./src/database/connection');
 const logger = require('./src/utils/logger.util');
+const { closePdfBrowser } = require('./src/services/pdf.service');
 const app = require('./src/app');
 
 let server;
@@ -24,9 +25,13 @@ const startServer = () => {
 const shutdown = (signal) => {
     logger.info({ signal }, 'Shutting down gracefully');
 
-    // Stop taking new requests, let running ones finish, then close the database connection (if there is one)
+    // Stop taking new requests, let running ones finish, then close the PDF browser (if one was started) and the
+    // database connection (if there is one)
     server.close(async () => {
         logger.info('Server closed');
+        if (await closePdfBrowser()) {
+            logger.info('PDF browser closed');
+        }
         const wasConnected = await disconnectDB();
         logger.info(wasConnected ? 'Database connection closed' : 'Database was not connected');
         process.exit(0);

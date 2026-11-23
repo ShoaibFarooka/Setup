@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import form from '@/styles/authForm.module.css';
 import useLogin from '@/hooks/useLogin';
-import { Button, FormField, Input, PasswordInput } from '@/components/ui';
+import { Button, FormField, Input, PasswordInput, TextLink } from '@/components/ui';
 import { loginSchema } from '@/validations/authValidations';
 import { validateForm } from '@/utils/validationUtils';
 
@@ -52,6 +52,7 @@ const Form = () => {
                         onChange={handleChange}
                     />
                 </FormField>
+                <TextLink to="/forgot-password" className={form.fieldLink}>Forgot password?</TextLink>
             </div>
             <Button type="submit" size="lg" fullWidth loading={login.isPending} className={form.submit}>
                 Log In

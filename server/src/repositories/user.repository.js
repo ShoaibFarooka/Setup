@@ -18,6 +18,10 @@ const listUsers = ({ search, page, limit, sort }) => paginate(User, {
 
 const userExists = (filter) => User.exists(filter);
 
+// Emails are stored in lowercase
+const findUserByEmail = (email, projection = null) =>
+    User.findOne({ email: email.trim().toLowerCase() }, projection, { lean: true });
+
 // `password` is `select: false` on the model, so it has to be asked for explicitly.
 // Email and username are stored in lowercase, so the login is case-insensitive
 const findUserByLoginWithPassword = (identifier) => {
@@ -37,6 +41,7 @@ module.exports = {
     findUserById,
     listUsers,
     userExists,
+    findUserByEmail,
     findUserByLoginWithPassword,
     updateUserById,
 };

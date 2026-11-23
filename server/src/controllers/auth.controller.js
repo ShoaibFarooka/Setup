@@ -45,9 +45,23 @@ const logoutAll = async (req, res) => {
     res.status(200).json(successBody('Logged out from all devices successfully'));
 };
 
+// The same answer whether the email belongs to an account or not
+const forgotPassword = async (req, res) => {
+    await authService.requestPasswordReset(req.body.email);
+    res.status(200).json(successBody('If an account exists for that email, we have sent a link to reset the password'));
+};
+
+const resetPassword = async (req, res) => {
+    await authService.resetPassword(req.body);
+    res.clearCookie('refreshToken', refreshTokenCookieOptions());
+    res.status(200).json(successBody('Your password has been changed. Log in with the new password'));
+};
+
 module.exports = {
     login,
     refreshToken,
     logout,
     logoutAll,
+    forgotPassword,
+    resetPassword,
 };
