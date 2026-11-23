@@ -94,3 +94,60 @@ describe('error-handler.middleware', () => {
         expect(logger.error).toHaveBeenCalledWith({ err: error }, 'Unhandled error');
     });
 });
+
+describe('error-handler.middleware: the real error in the request log (res.err)', () => {
+    const runWithRes = (error) => {
+        const res = {};
+        res.status = jest.fn(() => res);
+        res.json = jest.fn(() => res);
+        errorHandler(error, { method: 'GET', originalUrl: '/test' }, res, jest.fn());
+        return res;
+    };
+
+    test.each([
+        ['an AppError with 500', new AppError('Email is not configured!', 500)],
+        ['an unexpected error', new Error('boom')],
+        ['the database being unreachable', Object.assign(new Error('down'), { name: 'MongooseServerSelectionError' })],
+    ])('5xx: %s is handed to the request logger', (label, error) => {
+        expect(runWithRes(error).err).toBe(error);
+    });
+
+    test.each([
+        ['an AppError with 404', new AppError('User not found!', 404)],
+        ['a cast error', Object.assign(new Error('cast'), { name: 'CastError', path: 'id' })],
+    ])('4xx: %s is not (expected answers, no stack in the logs)', (label, error) => {
+        expect(runWithRes(error)).not.toHaveProperty('err');
+    });
+
+    test('the request\'s log line shows the real message and where it was thrown', async () => {
+        const express = require('express');
+        const request = require('supertest');
+        const { createRequestLogger } = require('../../../src/middlewares/request-logger.middleware');
+        const { createCapturingLogger } = require('../../helpers/log-capture');
+        const capture = createCapturingLogger();
+        const app = express();
+        app.use(createRequestLogger(capture.log));
+        app.get('/server-problem', () => {
+            throw new AppError('Email is not configured!', 500);
+        });
+        app.get('/not-found', () => {
+            throw new AppError('User not found!', 404);
+        });
+        app.use(errorHandler);
+
+        await request(app).get('/server-problem');
+        await request(app).get('/not-found');
+        await new Promise((resolve) => setImmediate(resolve));
+
+        const [serverProblem, notFound] = capture.lines().filter((line) => line.req);
+        expect(serverProblem).toMatchObject({
+            level: 'error',
+            msg: 'request errored',
+            res: { statusCode: 500 },
+            err: { type: 'AppError', message: 'Email is not configured!', statusCode: 500 },
+        });
+        expect(serverProblem.err.stack).toContain('error-handler.middleware.test.js');
+        expect(notFound).toMatchObject({ level: 'warn', res: { statusCode: 404 } });
+        expect(notFound).not.toHaveProperty('err');
+    });
+});

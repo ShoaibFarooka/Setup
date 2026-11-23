@@ -307,7 +307,7 @@ logger.error({ err: error }, 'Payment failed');
 
 Inside a request (middleware, controllers), use `req.log` instead: same methods, and every line carries the request's `reqId`.
 
-**Request logging** (`src/middlewares/request-logger.middleware.js`): one line per request with `reqId`, method, URL, status and duration; `info` for success, `warn` for 4xx, `error` for 5xx. Health checks are not logged. Every response has an `X-Request-Id` header (a safe incoming one is reused, e.g. from a proxy), so a user or the client can report it and you can find every line of that request.
+**Request logging** (`src/middlewares/request-logger.middleware.js`): one line per request with `reqId`, method, URL, status and duration; `info` for success, `warn` for 4xx, `error` for 5xx. For a 5xx the line also has the real error in `err` (message, type, status and the stack of where it was thrown): the error handler hands it over (`res.err`), so a 500 never shows up as a bare "failed with status code 500". 4xx lines have no `err`: they are expected answers (wrong password, validation), and their message is in the response. Health checks are not logged. Every response has an `X-Request-Id` header (a safe incoming one is reused, e.g. from a proxy), so a user or the client can report it and you can find every line of that request.
 
 **Never logged:** request headers (tokens, cookies) and any `password`, `token` or `refreshToken` field; they are replaced by `[REDACTED]`.
 
@@ -409,7 +409,7 @@ npm test -- tests/integration/auth.test.js   # one file
 npm test -- -t "wrong password"              # tests whose name contains this text
 ```
 
-- No MongoDB or `.env` needed: integration tests start a temporary in-memory MongoDB (`tests/helpers/db.js`), and `tests/setup/env.js` provides the variables. The first run on a machine downloads the MongoDB binary once.
+- No MongoDB or `.env` needed: integration tests start a temporary in-memory MongoDB (`tests/helpers/db.js`), and `tests/setup/env.js` provides the variables. Tests never read `server/.env` (dotenv is replaced in that setup file), so results do not depend on your local settings, such as `EMAIL_ENABLED=true`. The first run on a machine downloads the MongoDB binary once.
 - Logs are silent during tests; run `LOG_LEVEL=debug npm test` to see them while debugging. The logger's methods are spied on before every test (`tests/setup/spy-logger.js`), so tests can check what was logged: `expect(logger.error).toHaveBeenCalledWith({ err }, 'Seeding failed')`.
 - To check the actual log lines (JSON, redaction), use `createCapturingLogger()` from `tests/helpers/log-capture.js` (see `tests/unit/utils/logger.util.test.js`).
 - Helpers: `createUser(overrides, role)` creates a user and returns its plain password; `loginAs(identifier, password)` returns `{ token, cookie, res }`.

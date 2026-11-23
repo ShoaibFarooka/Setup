@@ -157,7 +157,8 @@ describe('app.config', () => {
 
         test('without it, development links to the local client and production has none', () => {
             expect(loadConfig({ NODE_ENV: 'development', CLIENT_URL: undefined }).clientUrl).toBe('http://localhost:5200');
-            expect(loadConfig({ NODE_ENV: 'production', CLIENT_URL: undefined }).clientUrl).toBeUndefined();
+            // Email off explicitly: with it on, production requires CLIENT_URL (the test below)
+            expect(loadConfig({ NODE_ENV: 'production', CLIENT_URL: undefined, EMAIL_ENABLED: undefined }).clientUrl).toBeUndefined();
         });
 
         test('is used when set', () => {
