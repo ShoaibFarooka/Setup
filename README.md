@@ -55,7 +55,7 @@ Open http://localhost:5200 and log in with the admin account from `server/.env`.
 
 ## Starting a new project from it
 
-1. **Rename and rebrand:** `APP_NAME` in `client/src/constants/appConstants.js`, the `<title>` in `client/index.html`, the brand colours at the top of `client/src/styles/theme.css`, the icons in `client/public/`, and the `name` fields in both `package.json` files.
+1. **Rename and rebrand:** `APP_NAME` in `client/src/constants/appConstants.js`, the `<title>` in `client/index.html`, the brand colours at the top of `client/src/styles/theme.css`, the icons in `client/public/`, the logo of emails and PDFs (`server/static/images/logo.png`, `appName` in `server/src/configs/app.config.js`), and the `name` fields in both `package.json` files.
 2. **Replace the placeholder pages:** the dashboard is a placeholder; the profile page is a working example.
 3. **Add features** the way the examples do it: "Edit profile" (a form) and the admin "Users" page (a paginated, searchable list) go through every layer (server route, validation, service, client hook, page, tests). Both READMEs have an "Adding a new feature" section.
 

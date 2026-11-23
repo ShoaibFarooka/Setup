@@ -1,4 +1,33 @@
-const { renderTemplate, templateExists } = require('../../../src/utils/template.util');
+const fs = require('node:fs');
+const { renderTemplate, templateExists, getLogoDataUri, LOGO_PATH } = require('../../../src/utils/template.util');
+
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+describe('template.util logo', () => {
+    test('the logo file is a PNG (mail apps do not show SVG)', () => {
+        expect(fs.readFileSync(LOGO_PATH).subarray(0, 8)).toEqual(PNG_SIGNATURE);
+    });
+
+    test('getLogoDataUri returns the logo file as a data: URL', () => {
+        const uri = getLogoDataUri();
+
+        expect(uri).toMatch(/^data:image\/png;base64,/);
+        expect(Buffer.from(uri.split(',')[1], 'base64')).toEqual(fs.readFileSync(LOGO_PATH));
+    });
+
+    test('the email and PDF layouts show the logo with the app name beside it', () => {
+        const data = { appName: 'My App', logoSrc: 'cid:logo', name: 'Ada', resetUrl: 'http://x', expiresInMinutes: 30 };
+
+        const email = renderTemplate('emails/reset-password', data, { layout: 'layouts/email' });
+        const pdf = renderTemplate('pdfs/sample-report', { ...data, title: 'Users', rows: [] }, { layout: 'layouts/pdf' });
+
+        for (const html of [email, pdf]) {
+            // Decorative image (alt=""): the name next to it still shows when a mail app blocks images
+            expect(html).toMatch(/<img src="cid:logo" width="40" height="40" alt=""/);
+            expect(html).toMatch(/>\s*My App\s*<\/td>/);
+        }
+    });
+});
 
 const resetData = { appName: 'My App', name: 'Ada', resetUrl: 'http://localhost:5200/reset-password?token=abc', expiresInMinutes: 30 };
 

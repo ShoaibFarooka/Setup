@@ -120,8 +120,8 @@ server/
 │   ├── seeders/             One-off scripts (npm run seed)
 │   ├── templates/           Handlebars templates: layouts/, partials/, emails/, pdfs/ (see "Emails and PDFs")
 │   └── utils/               AppError, response wrapper, tokens and hashing, logger (pino), templates, pagination
-├── static/                  Files the server may serve as they are; empty for now
-│   └── images/
+├── static/                  Files used as they are (not served over HTTP)
+│   └── images/              logo.png: the logo in every email and PDF
 └── tests/
     ├── setup/               Test environment variables, logger spies
     ├── helpers/             In-memory database, user factory, login helper, log capture
@@ -264,10 +264,11 @@ src/templates/
 ```
 
 - `{{value}}` is HTML-escaped, so data from users is safe to print; `{{{value}}}` is not escaped and is only for HTML we produce ourselves. Plain-text templates (`.text.hbs`) are never escaped.
-- Every template gets `appName` (`config.appName`; keep it the same as the client's `APP_NAME`). Emails also get `subject`.
+- Every template gets `appName` (`config.appName`; keep it the same as the client's `APP_NAME`) and `logoSrc`. Emails also get `subject`.
+- **Logo:** `static/images/logo.png`, shown by `partials/logo.hbs` with the app name beside it (so the name still shows when a mail app blocks images) in the header of both layouts. A PNG, because Gmail and Outlook do not show SVG; about 4x the 40px it is shown at, under ~20 KB, on a solid tile so it survives mail apps' dark mode. To rebrand, replace the file (same name). Emails carry it as an **inline attachment** (`src="cid:logo"`, added by `sendTemplateEmail`): it needs no public address and shows in development too. PDFs embed it as a `data:` URL (`renderPdf`). Never use `data:` URLs in emails (Gmail removes them). Once a project has public file hosting (a CDN or bucket), an `https://` address in `partials/logo.hbs` makes emails smaller; mail apps may then hide it until the reader allows images.
 - Compiled templates are cached; in development they are read again on every use, so edits show without a restart.
 
-**Sending email.** `sendTemplateEmail({ to, subject, template, data, cc, bcc })` (`src/services/email.service.js`) renders `emails/<template>.hbs` inside `layouts/email.hbs` plus `emails/<template>.text.hbs`, and sends both through `sendEmail(to, subject, text, html, cc, bcc)` (nodemailer). Email is sent when `EMAIL_ENABLED=true` and the `EMAIL_*` / `SENDER_*` variables are set; when it is disabled, `sendEmail` logs an error and throws `Email is not configured!` (`500`), so a feature that needs email fails loudly instead of silently.
+**Sending email.** `sendTemplateEmail({ to, subject, template, data, cc, bcc, attachments })` (`src/services/email.service.js`) renders `emails/<template>.hbs` inside `layouts/email.hbs` plus `emails/<template>.text.hbs`, and sends both, with the logo and any other `attachments` (nodemailer format), through `sendEmail(to, subject, text, html, cc, bcc, attachments)` (nodemailer). Email is sent when `EMAIL_ENABLED=true` and the `EMAIL_*` / `SENDER_*` variables are set; when it is disabled, `sendEmail` logs an error and throws `Email is not configured!` (`500`), so a feature that needs email fails loudly instead of silently.
 
 - Call them from a service, never from a controller.
 - Email programs ignore `<style>` blocks and most modern CSS: email templates use inline styles and tables (see `layouts/email.hbs`).

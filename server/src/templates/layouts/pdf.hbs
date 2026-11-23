@@ -13,9 +13,14 @@
         th, td { padding: 8px; border-bottom: 1px solid #E4E7EE; text-align: left; }
         th { background-color: #F4F5F9; }
         tr { break-inside: avoid; }
+        /* The logo header (partials/logo.hbs) is a table too: without the data tables' borders and width */
+        .brand { margin: 0 0 24px; padding: 0 0 12px; border-bottom: 1px solid #E4E7EE; }
+        .brand table { width: auto; }
+        .brand td { border: 0; }
     </style>
 </head>
 <body>
+    <header class="brand">{{> logo}}</header>
     {{{body}}}
 </body>
 </html>

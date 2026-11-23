@@ -64,6 +64,8 @@ describe('POST /api/auth/forgot-password', () => {
         expect(mail.text).toContain('Hi Ada Lovelace,');
         expect(mail.text).toContain(`${config.clientUrl}/reset-password?token=`);
         expect(mail.html).toContain('Reset password</a>');
+        expect(mail.html).toContain('<img src="cid:logo"');
+        expect(mail.attachments).toEqual([expect.objectContaining({ filename: 'logo.png', cid: 'logo' })]);
 
         const token = tokenFrom(mail);
         const stored = await PasswordReset.findOne({ user: user._id }).lean();

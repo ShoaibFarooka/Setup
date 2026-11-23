@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 const config = require('../configs/app.config');
 const logger = require('../utils/logger.util');
-const { renderTemplate } = require('../utils/template.util');
+const { renderTemplate, getLogoDataUri } = require('../utils/template.util');
 
 // PDFs are HTML (a Handlebars template) printed by headless Chrome (Puppeteer), so they can use normal CSS.
 // One browser is started on the first PDF and reused (starting it takes about a second); each PDF gets its own
@@ -44,11 +44,13 @@ const htmlToPdf = async (html, options = {}) => {
     }
 };
 
-// Renders src/templates/pdfs/<template>.hbs inside layouts/pdf.hbs and prints it; every template gets `appName`.
+// Renders src/templates/pdfs/<template>.hbs inside layouts/pdf.hbs and prints it; every template gets `appName`
+// and `logoSrc` (the logo as a data: URL: the renderer loads no files).
 // renderPdf('sample-report', { title, rows }) -> Buffer. Send it with
 // res.type('application/pdf').attachment('report.pdf').send(buffer).
 const renderPdf = async (template, data = {}, options = {}) => {
-    const html = renderTemplate(`pdfs/${template}`, { appName: config.appName, ...data }, { layout: 'layouts/pdf' });
+    const values = { appName: config.appName, logoSrc: getLogoDataUri(), ...data };
+    const html = renderTemplate(`pdfs/${template}`, values, { layout: 'layouts/pdf' });
     return htmlToPdf(html, options);
 };
 

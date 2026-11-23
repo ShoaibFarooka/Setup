@@ -23,6 +23,9 @@ test.describe('forgot password', () => {
         const email = await readEmail(reset.email);
         expect(email.subject).toBe('Reset your password');
         expect(email.html).toContain(`Hi ${reset.name},`);
+        // The logo travels inside the email (an inline attachment) and the layout shows it
+        expect(email.attachments).toEqual([expect.objectContaining({ filename: 'logo.png', cid: 'logo' })]);
+        expect(email.html).toContain('<img src="cid:logo"');
         const link = email.text.match(/http:\/\/localhost:5300\/reset-password\?token=[a-f\d]{64}/)?.[0];
         expect(link, 'the reset link in the email').toBeTruthy();
 

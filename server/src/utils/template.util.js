@@ -12,6 +12,20 @@ const config = require('../configs/app.config');
 // HTML we produce ourselves (the layout's body). Plain-text templates (.text.hbs) are never escaped.
 const TEMPLATES_DIR = path.join(__dirname, '../templates');
 
+// The logo in every email and PDF ({{> logo}}, from layouts/). One file, replaced per project: a PNG (mail apps
+// do not show SVG), about 4x the 40px it is shown at. Emails attach it (src="cid:logo"); PDFs embed it as a
+// data: URL, because the PDF renderer loads no files.
+const LOGO_PATH = path.join(__dirname, '../../static/images/logo.png');
+const LOGO_CID = 'logo';
+let logoDataUri = null;
+
+const getLogoDataUri = () => {
+    if (!logoDataUri || !useCache()) {
+        logoDataUri = `data:image/png;base64,${fs.readFileSync(LOGO_PATH).toString('base64')}`;
+    }
+    return logoDataUri;
+};
+
 const handlebars = Handlebars.create();
 const cache = new Map();
 let partialsRegistered = false;
@@ -62,5 +76,8 @@ const renderTemplate = (name, data = {}, { layout } = {}) => {
 module.exports = {
     renderTemplate,
     templateExists,
+    getLogoDataUri,
     TEMPLATES_DIR,
+    LOGO_PATH,
+    LOGO_CID,
 };

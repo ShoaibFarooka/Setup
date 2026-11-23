@@ -18,6 +18,8 @@ describe('pdf.service', () => {
 
         expect(isPdf(pdf)).toBe(true);
         expect(pdf.length).toBeGreaterThan(1000);
+        // The logo from the layout's header, embedded (the renderer loads no files)
+        expect(pdf.toString('latin1')).toMatch(/\/Subtype\s*\/Image/);
     });
 
     test('htmlToPdf takes Puppeteer options, e.g. landscape', async () => {
@@ -25,6 +27,8 @@ describe('pdf.service', () => {
         const landscape = await htmlToPdf('<p>Hi</p>', { landscape: true });
 
         expect(isPdf(landscape)).toBe(true);
+        // htmlToPdf prints only the given HTML: no layout, so no logo image
+        expect(portrait.toString('latin1')).not.toMatch(/\/Subtype\s*\/Image/);
         // The page size is in the file: A4 is 595 x 842 points
         expect(portrait.toString('latin1')).toMatch(/MediaBox \[0 0 595\.\d+ 841\.\d+\]/);
         expect(landscape.toString('latin1')).toMatch(/MediaBox \[0 0 841\.\d+ 595\.\d+\]/);

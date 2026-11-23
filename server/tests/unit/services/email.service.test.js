@@ -5,6 +5,7 @@ const transporter = require('../../../src/configs/email.config');
 const logger = require('../../../src/utils/logger.util');
 const { AppError } = require('../../../src/utils/app-error.util');
 const { sendEmail, sendTemplateEmail } = require('../../../src/services/email.service');
+const { LOGO_PATH } = require('../../../src/utils/template.util');
 
 describe('email.service sendEmail', () => {
     beforeEach(() => {
@@ -66,6 +67,33 @@ describe('email.service sendEmail', () => {
         expect(mail.html).toContain('Hi Ada,');
         expect(mail.text).toContain('Hi Ada,');
         expect(mail.text).not.toContain('<');
+    });
+
+    test('sendTemplateEmail sends the logo inside the email (cid:logo), before any other attachments', async () => {
+        transporter.sendMail.mockResolvedValue({ messageId: '1' });
+        const invoice = { filename: 'invoice.pdf', content: Buffer.from('%PDF') };
+
+        await sendTemplateEmail({
+            to: 'ada@example.com',
+            subject: 'Reset your password',
+            template: 'reset-password',
+            data: { name: 'Ada', resetUrl: 'http://x', expiresInMinutes: 30 },
+            attachments: [invoice],
+        });
+
+        const mail = transporter.sendMail.mock.calls[0][0];
+        expect(mail.html).toContain('<img src="cid:logo"');
+        expect(mail.attachments).toEqual([{ filename: 'logo.png', path: LOGO_PATH, cid: 'logo' }, invoice]);
+    });
+
+    test('sendEmail passes attachments only when there are some', async () => {
+        transporter.sendMail.mockResolvedValue({ messageId: '1' });
+
+        await sendEmail('to@example.com', 'Hello', 'Text', undefined, undefined, undefined, []);
+        await sendEmail('to@example.com', 'Hello', 'Text', undefined, undefined, undefined, [{ filename: 'a.txt', content: 'a' }]);
+
+        expect(transporter.sendMail.mock.calls[0][0]).not.toHaveProperty('attachments');
+        expect(transporter.sendMail.mock.calls[1][0].attachments).toEqual([{ filename: 'a.txt', content: 'a' }]);
     });
 
     test('sendTemplateEmail with an unknown template throws before anything is sent', async () => {
