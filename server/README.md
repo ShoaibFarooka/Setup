@@ -285,6 +285,7 @@ res.type('application/pdf').attachment('users.pdf').send(pdf);
 - One browser is started on the first PDF and reused (about a second to start); each PDF gets its own tab, closed afterwards. `closePdfBrowser()` ends it on shutdown (`index.js`).
 - `npm install` downloads Puppeteer's Chrome (several hundred MB, into `~/.cache/puppeteer`). On a Linux server or in a container, Chrome needs its system libraries (see Puppeteer's [troubleshooting](https://pptr.dev/troubleshooting)); never turn off Chrome's sandbox (`--no-sandbox`) without a container that isolates it.
 - Puppeteer stays on version 24: version 25 is published as ES modules only, which Jest cannot load without an experimental Node flag.
+- **Known `npm audit` findings (accepted):** Puppeteer 24's own dependencies report "high" advisories: `extract-zip` (path traversal when unzipping), `basic-ftp` via `proxy-agent` (crashes on malicious FTP listings) and `zod` via `chromium-bidi` (memory on huge inputs). None of them handles data from API requests: the first two run only while Puppeteer downloads Chrome (from Google, at `npm install`), and `chromium-bidi` only for the WebDriver BiDi protocol, which `renderPdf` does not use. The fix is Puppeteer 25 or newer: upgrade when Jest can load it without the flag, or earlier if a project needs it (then load it with `await import('puppeteer')` and run Jest with `--experimental-vm-modules`). Any new audit finding outside this list is not accepted by this note.
 
 ### HTTP caching and body size
 
