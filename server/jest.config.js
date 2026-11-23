@@ -12,4 +12,9 @@ module.exports = {
     testTimeout: 30000,
     // Coverage of the app code only, including files no test loads
     collectCoverageFrom: ['src/**/*.js', 'index.js'],
+    // npm run test:coverage (and the pre-push hook) fails below these. Coverage today is ~99% (branches ~93%):
+    // the floor stops a real drop without blocking work over one untested edge case. Raise it, never lower it.
+    coverageThreshold: {
+        global: { statements: 90, branches: 85, functions: 90, lines: 90 },
+    },
 };

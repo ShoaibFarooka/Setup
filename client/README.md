@@ -249,7 +249,7 @@ The steps for a new feature, with `products` (a list and a create form) as the e
 4. **Validation:** `src/validations/productValidations.js` with a Yup schema for the create form (mirroring the server's rules).
 5. **Page:** `pages/products/Products/Products.jsx` with `PageHeader` and parts from `@/components/ui` (`Card`, `Table`, `FormField`, `Button`, ...), using the hooks and `validateForm(productSchema, values)`; show `isPending` (`Skeleton` / `Spinner`) and `isError` (`EmptyState` / `Alert`) states.
 6. **Route and menu:** add it to `router/RouteConfig.jsx` with `lazy()` and the `roles` that may open it, and to those roles' menus in `constants/menuItems.jsx` if it should appear in the sidebar.
-7. **Tests:** fake the server routes in `tests/mocks/handlers.js` (or per test with `server.use(...)`) using `success()` / `failure()`, then test the page with `renderApp({ route: '/products' })` and the schema in `tests/unit/validations/`. Add an E2E test for the flow in `e2e/`, the page to `e2e/a11y.spec.js` and `e2e/visual.spec.js`, then run `npm run e2e` and look at the new screenshots.
+7. **Tests:** fake the server routes in `tests/mocks/handlers.js` (or per test with `server.use(...)`) using `success()` / `failure()`, then test the page with `renderApp({ route: '/products' })` and the schema in `tests/unit/validations/`. Add an E2E test for the flow in `e2e/`, the page to `e2e/a11y.spec.js` and `e2e/visual.spec.js`, then run those specs (`npx playwright test e2e/products.spec.js`, and `e2e/visual.spec.js -g "products"`) and look at the new screenshots. Which tests a change needs: "Testing levels" in `../CLAUDE.md`.
 
 ## Lists with pagination
 

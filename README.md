@@ -51,7 +51,7 @@ Open http://localhost:5200 and log in with the admin account from `server/.env`.
 | `cd client && npm test` | client unit and page tests (fake server) | nothing |
 | `cd client && npm run e2e` | the real app in a real browser against the real API | `npx playwright install chromium` once; starts its own API and database |
 
-`npm run lint` in each part checks code and style. On every commit, a pre-commit hook (husky + lint-staged, set up by `npm install` in the root) lints and auto-fixes the staged files inside their own part, with that part's ESLint config (`server/.lintstagedrc.json`, `client/.lintstagedrc.json`); a commit with an error that cannot be fixed automatically stops, so it can be fixed first.
+`npm run lint` in each part checks code and style. On every commit, a pre-commit hook (husky + lint-staged, set up by `npm install` in the root) lints and auto-fixes the staged files inside their own part, with that part's ESLint config (`server/.lintstagedrc.json`, `client/.lintstagedrc.json`); a commit with an error that cannot be fixed automatically stops, so it can be fixed first. Before every push, a pre-push hook runs both unit suites with their coverage thresholds (90% statements, functions and lines, 85% branches; about 3 minutes); a failing test or a drop below the thresholds stops the push. The end-to-end tests are not in the hook (too slow): run `cd client && npm run e2e` before pushing changes to shared parts (see "Testing levels" in `CLAUDE.md`).
 
 ## Starting a new project from it
 

@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+# Before every push: both unit suites with their coverage thresholds (about 2-3 minutes); the first failure
+# stops the push. The full E2E suite is not here (too slow for a hook): run it before pushing shared changes
+# (CLAUDE.md, "Testing levels"). Until CI exists, this is the automatic check before code leaves the machine.
+# Each suite runs from inside its part (not npm --prefix): the in-memory MongoDB looks for its downloaded binary
+# from the folder npm starts in, and from the root it would not find server's copy and download it again.
+set -e
+(cd server && npm run test:coverage --silent)
+(cd client && npm run test:coverage --silent)

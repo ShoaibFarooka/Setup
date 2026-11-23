@@ -44,6 +44,9 @@ export default defineConfig({
         coverage: {
             include: ['src/**/*.{js,jsx}'],
             exclude: ['src/main.jsx'],
+            // npm run test:coverage (and the pre-push hook) fails below these. Coverage today is ~99%: the floor
+            // stops a real drop without blocking work over one untested edge case. Raise it, never lower it.
+            thresholds: { statements: 90, branches: 85, functions: 90, lines: 90 },
         },
     },
 });

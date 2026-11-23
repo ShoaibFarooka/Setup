@@ -12,7 +12,7 @@ React 19 + Vite web app for the server in `../server`. `README.md` explains ever
 - `npm run lint` / `npm run lint:fix`: ESLint (bugs, React rules, style)
 - `npm run dev`: dev server on port 5200 · `npm run build`: production build
 
-**Done means:** `npm run lint`, `npm test`, `npm run build` and `npm run e2e` all pass, with tests for the change; for anything people can see, the screenshots looked at in both themes (below).
+**Done means:** the change has its tests and passes the testing level it needs (`../CLAUDE.md`, "Testing levels"): while working, the related unit tests (`npx vitest related --run <files>`) and the affected E2E spec; when done, the full `npm test` and the affected specs on both devices. The full `npm run build` and `npm run e2e` only for shared parts (router, layout, theme or `base.css`, `lib/`, widely used ui components, the E2E setup) or before a push. For anything people can see, the screenshots of the changed pages are looked at in both themes (below).
 
 ## End-to-end tests and checking the UI (required)
 
@@ -23,7 +23,7 @@ Unit tests run in jsdom: no layout, no media queries, no real server. They canno
 - **`PAGES` entries** (in `a11y.spec.js` and `visual.spec.js`): `account: 'admin'` for pages behind a role, `waitFor: '<text>'` when the page loads data after its heading, and values that change between runs (dates, ids) are masked in screenshots (table date cells already are).
 - **Looks:** `e2e/visual.spec.js` compares screenshots with the approved ones in `e2e/__screenshots__` (desktop 1440 and 768px, a phone; light and dark). A new page or a new menu or dialog goes into it.
   - **An unintended difference is a bug:** read the expected, actual and diff images in `test-results/`, and fix the cause.
-  - **After an intended change:** run `npm run e2e:update`, then **open and read every new or changed screenshot** before saying the work is done. Never update screenshots without looking at them.
+  - **After an intended change:** update only the changed pages' screenshots (`npx playwright test e2e/visual.spec.js -g "<page>" --update-snapshots`; `npm run e2e:update` redoes all of them, for shared changes), then **open and read every new or changed screenshot** before saying the work is done. Never update screenshots without looking at them.
 - **Data:** never confirm actions on shared accounts that would disturb other tests running in parallel (for example "log out everywhere" and the password reset: each has its own account and runs on one project only). A new account in `e2e-accounts.json` means one sample user fewer in `e2e-server.js` (the lists expect 28 users).
 - **Emails:** the E2E server writes them to a temporary outbox instead of sending; read them with `clearEmail(to)` / `readEmail(to)` from `e2e/fixtures.js`.
 - **Report** what was run, which screenshots you looked at, what you found and fixed, and anything not covered.

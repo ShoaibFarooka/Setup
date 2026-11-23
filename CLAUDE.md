@@ -12,7 +12,7 @@ Work inside the part you change, and follow its `CLAUDE.md`. This file holds the
 Read them in this order; a later file adds detail, it never silently overrides an earlier one:
 
 1. The user's personal instructions (`~/.claude/CLAUDE.md`): commits, scope, temporary files.
-2. This file: approvals, the contract between server and client, end-to-end tests.
+2. This file: approvals, testing levels, the contract between server and client, end-to-end tests.
 3. `server/CLAUDE.md` or `client/CLAUDE.md` for the part you change, then the matching `README.md` section for details.
 
 ## Rules and approvals
@@ -31,6 +31,36 @@ Always ask first, even when the task seems to require it:
 
 An approval covers that task only. When the user approves a lasting exception, update the rule in the same change, so the files never disagree with what the code does.
 
+## Testing levels
+
+Test in proportion to what the change touches; the full run is for shared parts, not every change. Every change still comes with its own tests (new or updated), and the pre-commit hook lints the staged files.
+
+| Level | When | What runs |
+|---|---|---|
+| **1. Targeted** (while working) | every change | unit tests of the changed files; the E2E spec of the affected flow or page (desktop only while iterating); for a visible change, the screenshots of that page only, looked at |
+| **2. Part** (task done) | before reporting a task as done | the full unit suite of each part that changed; the affected E2E specs on both devices (desktop and mobile) |
+| **3. Full** | the change touches something shared (below), before a push, or when the user asks | both parts: `npm run lint`, `npm test`; client `npm run build` and the full `npm run e2e` |
+
+**Shared (level 3):** the API contract or an endpoint the client uses, auth and sessions, `router/`, `components/layout/`, `styles/theme.css` or `base.css`, a ui component used on many pages, `lib/`, `app.js` and global middleware, `app.config.js`, the E2E setup (`e2e-server.js`, accounts, `fixtures.js`, `playwright.config.js`), dependencies. Unsure: choose the higher level.
+
+**Commands (level 1):**
+
+```bash
+# server/
+npx jest --findRelatedTests src/services/auth.service.js         # tests that load the changed files
+npx jest tests/integration/password-reset.test.js                # one test file
+# client/
+npx vitest related --run src/pages/users/Users/Users.jsx          # tests that import the changed files
+npx playwright test e2e/users.spec.js --project=desktop           # one spec, desktop only
+npx playwright test e2e/visual.spec.js -g "users" --update-snapshots   # one page's screenshots (then look at them)
+```
+
+- **Bug fixes:** add a test that reproduces the bug. Prove it fails without the fix (by undoing it once) only when the cause is not obvious.
+- **No repeat runs:** do not run the same suite again when nothing it covers changed since it passed (for example when splitting work into several commits), unless the user asks.
+- **Report** which level ran and what it did not cover, so the user knows what is and is not verified.
+- **Coverage thresholds** (both parts): statements, functions and lines 90%, branches 85% (`server/jest.config.js`, `client/vite.config.js`); `npm run test:coverage` fails below them. Coverage is ~99% today; raise the floor when it stays higher, never lower it without the user's approval.
+- Until CI exists, the pre-push hook (both unit suites with coverage) is the automatic check, and level 3 is the full one: run it whenever the list above applies. When CI is added, it runs level 3 on every push.
+
 ## Lists and pagination (contract)
 
 Every endpoint that returns a list is paginated; none returns all documents at once.
@@ -43,13 +73,13 @@ Every endpoint that returns a list is paginated; none returns all documents at o
 
 - Server: `cd server && npm run dev` (port 5000). Client: `cd client && npm run dev` (port 5200).
 - The client finds the server through `VITE_BASE_URL` (`client/.env`); the server allows the client through `CORS_ORIGINS` (`http://localhost:5200` by default in development).
-- Node: `.nvmrc` (24). The root `package.json` only holds repository tooling: a pre-commit hook (husky + lint-staged) lints and fixes the staged files of both parts. Never skip it (`--no-verify`) without the user's approval; fix the reported error instead.
+- Node: `.nvmrc` (24). The root `package.json` only holds repository tooling (husky): a **pre-commit** hook lints and fixes the staged files of both parts (lint-staged); a **pre-push** hook runs both unit suites with their coverage thresholds (`test:coverage`, about 3 minutes). Never skip them (`--no-verify`) without the user's approval; fix the reported error instead.
 
 ## End-to-end tests (both parts together)
 
 - `cd client && npm run e2e` runs Playwright against the real API. It starts `server`'s `npm run e2e:server` (in-memory database, port 5100, accounts from `server/scripts/e2e-accounts.json`) and a production build of the client on port 5300 (`vite preview`), so the development servers keep running and no real data is touched.
 - A change to the contract or to a flow updates the E2E tests too (`client/e2e/`), and, when a flow needs data, `server/scripts/e2e-server.js` / `e2e-accounts.json` in the same change.
-- Done for a change people can see: `npm run e2e` passes and the new or changed screenshots have been looked at (see `client/CLAUDE.md`).
+- Which E2E tests a change needs: "Testing levels" above. For a change people can see, the new or changed screenshots are always looked at (see `client/CLAUDE.md`).
 
 ## Response contract
 

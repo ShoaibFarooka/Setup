@@ -11,7 +11,7 @@ Express 5 + MongoDB (Mongoose 9) API. `README.md` explains everything in detail 
 - `npm run dev`: start with auto-reload · `npm run seed`: create the admin account
 - `npm run e2e:server`: the API for the client's Playwright tests (in-memory database, accounts from `scripts/e2e-accounts.json`, port 5100); the client's `npm run e2e` starts it
 
-**Done means:** `npm run lint` and `npm test` both pass, with tests for the change. When an endpoint the client uses changes, the client's `npm test` and `npm run e2e` pass too (and `../CLAUDE.md` is updated if the contract changed).
+**Done means:** the change has its tests and passes the testing level it needs (`../CLAUDE.md`, "Testing levels"): while working, the related tests (`npx jest --findRelatedTests <files>`); when done, the full `npm test`. An endpoint the client uses, auth, `app.js`, global middleware or `app.config.js` is shared: level 3, both parts and the full E2E (and `../CLAUDE.md` updated if the contract changed).
 
 ## Architecture
 
