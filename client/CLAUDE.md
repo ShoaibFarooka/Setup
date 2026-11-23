@@ -98,6 +98,7 @@ The UI must stay restylable per project: every control and building block comes 
 
 - Every interactive element has hover, `:active`, `:focus-visible` and disabled states (and loading when it starts work); new ui components too.
 - Durations and easings only from tokens (`--duration-fast/base/slow`, `--easing`, `--easing-out`); entry animations from `styles/motion.module.css` (`fadeIn`, `fadeUp`, `popIn`).
+- Never position an interactive element with `transform` (e.g. centring with `translateY(-50%)`): its pressed state sets its own `transform`, the element jumps while pressed and the click is lost. Centre with layout instead (`inset-block: 0; margin-block: auto`, flex or grid).
 - Animate only `transform`, `opacity` and colours; keep motion short and subtle; no looping animation except loading. Reduced motion is handled globally in `base.css`; never let an animation carry information.
 - Spinners wait `--loader-delay`; prefer `Skeleton` when the content's shape is known.
 

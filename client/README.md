@@ -371,7 +371,7 @@ Shared entry animations live in `styles/motion.module.css`: `fadeIn`, `fadeUp`, 
 
 1. **Every interactive element has all its states:** hover, pressed (`:active`), keyboard focus (`:focus-visible`) and disabled; plus loading when it starts work. The ui components already do; new ones must too.
 2. **Only durations and easings from the tokens**, never typed values: the app then moves at one rhythm, and a project can make it snappier or calmer in one place.
-3. **Animate `transform` and `opacity`** (and colours); never width, height, top or left, which make the page stutter.
+3. **Animate `transform` and `opacity`** (and colours); never width, height, top or left, which make the page stutter. And never **position** an interactive element with `transform` (such as centring it with `translateY(-50%)`): its pressed state sets its own `transform`, so it jumps while pressed and a click released outside it is lost (the password eye button did this). Centre it with layout: `inset-block: 0; margin-block: auto`, flex or grid. `e2e/password-input.spec.js` shows how to test presses like a person makes them.
 4. **Motion explains, it does not decorate:** something appearing, moving or responding to the user. Keep it short and subtle (a few pixels, under half a second); no looping animations except loading indicators.
 5. **Reduced motion is respected automatically** (`base.css` turns animations and transitions off when the system asks for less motion). Never rely on an animation to carry information.
 6. **Loading:** wait `--loader-delay` before showing a spinner; prefer `Skeleton` for content whose shape is known (lists, cards).
@@ -509,6 +509,7 @@ npx playwright show-report                   # the HTML report of the last run
 | `auth.spec.js` | logging in (right, wrong, empty), returning to the page asked for, the session surviving a reload, logging out, "log out of all devices" ending another device's session |
 | `access.spec.js` | visitors sent to login, the 404 page, each role's pages and details, sidebar navigation and the phone menu drawer |
 | `users.spec.js` | the admin users list: pages, search (also after a reload), no matches; other roles without access |
+| `password-input.spec.js` | the show / hide password button on login and reset password, pressed like a person does (held, at its top, middle and bottom, alternating between fields) |
 | `password-reset.spec.js` | forgot password end to end: the email the server wrote, its link, the new password logging in and the old one refused, the link working only once; an unknown email; a link without a token |
 | `profile.spec.js` | editing the profile: saving and seeing the change everywhere (also after a reload), an email of another account refused, invalid values |
 | `a11y.spec.js` | axe accessibility checks of every page and the edit dialog, in light and dark; serious or critical problems fail |
