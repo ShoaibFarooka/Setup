@@ -61,7 +61,7 @@ Unit tests run in jsdom: no layout, no media queries, no real server. They canno
 - The access token lives in memory only (`lib/session.js`). Never store tokens in localStorage, sessionStorage or JS-readable cookies.
 - Routes in `router/RouteConfig.jsx` (`protected`, `roles`, `guestOnly`, `showSidebar`). Every protected route lists its `roles` (from `ROLES` / `ALL_ROLES`, matching the server's); that alone decides access. `constants/menuItems.jsx` is navigation only.
 - Pages are imported with `lazy()` in `RouteConfig.jsx`. `Router.jsx` groups them as layout routes (session check → `AppLayout` → `RequireRole` → `PageFrame`); the layout stays mounted between pages, so never re-create it inside a page. Don't import pages directly elsewhere (it would put them back into the main bundle).
-- Every page starts with exactly one `<h1>` (use `PageHeader`): after a navigation, focus moves to it for screen readers. Keep the "Skip to content" link and `id="main-content"` in `AppLayout`.
+- Every page starts with exactly one `<h1>` (use `PageHeader`): after a navigation, focus moves to it for screen readers (without a focus ring), unless the page focused one of its own fields (`autoFocus`). Never give `tabindex="-1"` elements a visible focus style. Keep the "Skip to content" link and `id="main-content"` in `AppLayout`.
 - Logout only through `useLogout()` (it clears the query cache).
 
 ## Structure and style

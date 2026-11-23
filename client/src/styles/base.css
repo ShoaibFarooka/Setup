@@ -59,6 +59,13 @@ textarea {
     outline-offset: 2px;
 }
 
+/* Elements the app focuses only to guide screen readers, never to be operated: the page heading after a page
+   change (router/PageFrame.jsx) and the "Skip to content" target (<main>). Browsers would draw the keyboard
+   ring on them when the app opens or redirects, before the user has done anything. */
+[tabindex='-1']:focus {
+    outline: none;
+}
+
 /* Chrome, Safari, Edge, Opera */
 input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button {

@@ -6,13 +6,14 @@ import motion from '@/styles/motion.module.css';
 
 // The page itself, once its code has loaded: rises into place, and after a navigation moves keyboard and
 // screen-reader focus to its heading, so the change of page is announced (the browser does not do this
-// for single-page apps). The first page load keeps the browser's own focus.
+// for single-page apps). The first page load keeps the browser's own focus, and a page that already put focus
+// inside itself (a form's autoFocus field) keeps it. The heading gets no focus ring (base.css): it is not a control.
 const PageContent = ({ children }) => {
     const ref = useRef(null);
     const { key } = useLocation();
 
     useEffect(() => {
-        if (key === 'default') {
+        if (key === 'default' || ref.current?.contains(document.activeElement)) {
             return;
         }
         const heading = ref.current?.querySelector('h1');

@@ -54,3 +54,38 @@ for (const theme of THEMES) {
         expect(serious, describeViolations(serious)).toEqual([]);
     });
 }
+
+// Focus after opening the app: / redirects, and a redirect moves focus like any page change
+const focusState = (page) => page.evaluate(() => {
+    const element = document.activeElement;
+    const style = getComputedStyle(element);
+    // A focus ring is an outline (base.css) or a box-shadow ring (ui controls)
+    const ring = style.outlineStyle !== 'none' || style.boxShadow !== 'none';
+    return { tag: element.tagName, label: element.labels?.[0]?.textContent ?? null, ring };
+});
+
+test('opening the app logged out: the cursor is in the email field', async ({ page }) => {
+    await page.goto('/');
+    await pageReady(page, 'Log into your Account');
+
+    await expect.poll(() => focusState(page)).toMatchObject({ tag: 'INPUT', label: 'Email or Username' });
+});
+
+test('opening the app logged in: focus is on the heading for screen readers, without a focus ring', async ({ page, loginAs }) => {
+    await loginAs();
+    await page.goto('/');
+    await pageReady(page, 'Dashboard');
+
+    await expect.poll(() => focusState(page)).toEqual({ tag: 'H1', label: null, ring: false });
+});
+
+test('keyboard users still get a focus ring on controls', async ({ page }) => {
+    await page.goto('/login');
+    await pageReady(page, 'Log into your Account');
+
+    await page.keyboard.press('Tab');
+
+    const state = await focusState(page);
+    expect(state.tag).not.toBe('H1');
+    expect(state.ring, `a focus ring on the ${state.tag} reached with Tab`).toBe(true);
+});

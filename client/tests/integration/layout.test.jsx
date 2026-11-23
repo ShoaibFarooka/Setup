@@ -48,6 +48,17 @@ describe('layout', () => {
     });
 });
 
+describe('focus after a redirect (logged out)', () => {
+    test('a page that focuses its own field keeps it (login\'s email field); the heading does not take it', async () => {
+        renderApp({ route: '/' });
+        // No session: / redirects to /login
+        const heading = await screen.findByRole('heading', { name: 'Log into your Account' });
+
+        await waitFor(() => expect(screen.getByLabelText('Email or Username')).toHaveFocus());
+        expect(heading).not.toHaveFocus();
+    });
+});
+
 describe('sidebar on small screens', () => {
     beforeEach(() => loggedIn());
 
