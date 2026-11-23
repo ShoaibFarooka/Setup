@@ -1,0 +1,61 @@
+# Web App Boilerplate
+
+A full-stack starting point for web apps: an **Express 5 + MongoDB API** and a **React 19 + Vite client**, wired together and tested end to end.
+
+**What you get**
+
+- **Auth:** login by email or username, short-lived access tokens kept in memory, rotating refresh tokens in httpOnly cookies, sessions per device, "log out everywhere", roles (`admin`, `user`).
+- **Server:** one response shape for every request, validation on every route, structured logs with request ids, rate limits, CORS, graceful shutdown.
+- **Client:** TanStack Query data layer, protected routes by role, an own UI kit (Ant Design only for complex parts), light / dark / system theme, responsive layout, accessible by default.
+- **Tests:** unit and integration tests on both sides, plus Playwright end-to-end tests against the real API (user flows, accessibility checks, visual screenshots in both themes on desktop and phone).
+- **Docs for people and AI agents:** a `README.md` and a `CLAUDE.md` in each part.
+
+## Structure
+
+| Folder | What | Details |
+|---|---|---|
+| [`server/`](server/README.md) | Express 5 API with MongoDB (Mongoose 9), Jest tests | setup, environment variables, endpoints, auth, logging |
+| [`client/`](client/README.md) | React 19 + Vite app, Vitest and Playwright tests | data flow, UI kit, theme, routes, testing |
+
+The contract between them (response shape, auth endpoints, status codes) is in [`CLAUDE.md`](CLAUDE.md).
+
+## Quick start
+
+Requirements: **Node.js 20.19 or newer** (24 recommended, see `server/.nvmrc`) and a **MongoDB** database (local or Atlas).
+
+```bash
+# 1. Server: http://127.0.0.1:5000
+cd server
+npm install
+cp .env.example .env      # fill in DB_URI, the two token secrets and the ADMIN_* account
+npm run seed              # creates the admin account
+npm run dev
+
+# 2. Client: http://localhost:5200 (in a second terminal)
+cd client
+npm install
+cp .env.example .env      # VITE_BASE_URL=http://localhost:5000
+npm run dev
+```
+
+Open http://localhost:5200 and log in with the admin account from `server/.env`. The server README explains each variable and how to generate the secrets.
+
+## Tests
+
+| Command | Runs | Needs |
+|---|---|---|
+| `cd server && npm test` | API unit and integration tests | nothing (in-memory MongoDB) |
+| `cd client && npm test` | client unit and page tests (fake server) | nothing |
+| `cd client && npm run e2e` | the real app in a real browser against the real API | `npx playwright install chromium` once; starts its own API and database |
+
+`npm run lint` in each part checks code and style.
+
+## Starting a new project from it
+
+1. **Rename and rebrand:** `APP_NAME` in `client/src/constants/appConstants.js`, the `<title>` in `client/index.html`, the brand colours at the top of `client/src/styles/theme.css`, the icons in `client/public/`, and the `name` fields in both `package.json` files.
+2. **Replace the placeholder pages:** the dashboard is a placeholder; the profile page is a working example.
+3. **Add features** the way the example does it: "Edit profile" goes through every layer (server route, validation, service, client hook, form, tests). Both READMEs have an "Adding a new feature" section.
+
+## For AI agents
+
+Read [`CLAUDE.md`](CLAUDE.md) first, then the `CLAUDE.md` of the part you change. They hold the rules, the contract and what "done" means (including running the end-to-end tests and looking at the screenshots).
