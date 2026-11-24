@@ -5,11 +5,23 @@ import {
     setCurrentLanguage, t, translate,
 } from '@/lib/i18n';
 
-// Every text as [key, text]; a text with plural forms counts as one entry per form
-const flatten = (node, prefix = '') => Object.entries(node).flatMap(([key, value]) => (
-    typeof value === 'string' ? [[`${prefix}${key}`, value]] : flatten(value, `${prefix}${key}.`)
-));
-const placeholdersByKey = (catalog) => Object.fromEntries(flatten(catalog).map(([key, text]) => [key, (text.match(/\{\w+\}/g) ?? []).sort()]));
+// A text with plural forms is an object of Intl.PluralRules categories ({ one, other }; Arabic also zero, two, few,
+// many): it counts as one text, whose forms are joined for the checks below
+const PLURAL_FORMS = ['zero', 'one', 'two', 'few', 'many', 'other'];
+const isPlural = (value) => typeof value === 'object' && Object.keys(value).every((form) => PLURAL_FORMS.includes(form));
+
+// Every text as [key, text]
+const flatten = (node, prefix = '') => Object.entries(node).flatMap(([key, value]) => {
+    if (typeof value === 'string') {
+        return [[`${prefix}${key}`, value]];
+    }
+    return isPlural(value) ? [[`${prefix}${key}`, Object.values(value).join(' | ')]] : flatten(value, `${prefix}${key}.`);
+});
+// {count} is left out: a language may say "one" or "two" in words instead (Arabic does)
+const placeholdersByKey = (catalog) => Object.fromEntries(flatten(catalog).map(([key, text]) => [
+    key,
+    [...new Set(text.match(/\{\w+\}/g) ?? [])].filter((name) => name !== '{count}').sort(),
+]));
 
 const setBrowserLanguages = (languages) => {
     Object.defineProperty(navigator, 'languages', { value: languages, configurable: true });

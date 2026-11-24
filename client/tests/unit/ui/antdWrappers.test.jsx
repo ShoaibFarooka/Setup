@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import AntdButton from 'antd/es/button';
 import ThemeProvider from '@/contexts/ThemeProvider';
 import { Button, DropdownMenu, Modal, PaginationHandler, PasswordInput, Spinner, Table, Tabs, Tooltip, UiProvider, confirm, toast } from '@/components/ui';
 
@@ -44,20 +45,33 @@ describe('Modal', () => {
 describe('Table', () => {
     const columns = [{ key: 'name', title: 'Name', dataIndex: 'name' }];
 
-    test('shows a row per item', () => {
+    test('shows a row per item', async () => {
         renderUi(<Table label="Products" columns={columns} data={[{ id: 1, name: 'Chair' }, { id: 2, name: 'Desk' }]} />);
 
         expect(screen.getByRole('region', { name: 'Products' })).toHaveAttribute('tabindex', '0');
 
-        expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
+        // Ant Design's table downloads on first use
+        expect(await screen.findByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
         expect(screen.getByRole('cell', { name: 'Chair' })).toBeInTheDocument();
         expect(screen.getByRole('cell', { name: 'Desk' })).toBeInTheDocument();
     });
 
-    test('says so when there are no rows', () => {
+    test('says so when there are no rows', async () => {
         renderUi(<Table columns={columns} data={[]} emptyText="No products yet" />);
 
-        expect(screen.getByText('No products yet')).toBeInTheDocument();
+        expect(await screen.findByText('No products yet')).toBeInTheDocument();
+    });
+
+    // The table loads on demand from antd/es/table: it must still be inside UiProvider's theme (the same Ant Design
+    // copy), not a second, unthemed one
+    test('the table that loads on demand gets the same theme as Ant Design parts loaded up front', async () => {
+        renderUi(<><AntdButton>Up front</AntdButton><Table label="Products" columns={columns} data={[]} /></>);
+        await screen.findByRole('table');
+
+        const themeClass = (element) => [...element.classList].find((name) => name.startsWith('css-var-'));
+        const tableWrapper = screen.getByRole('region', { name: 'Products' }).firstElementChild;
+        expect(themeClass(tableWrapper)).toBe(themeClass(screen.getByRole('button', { name: 'Up front' })));
+        expect(themeClass(tableWrapper)).not.toBe('css-var-root');
     });
 });
 
@@ -65,7 +79,7 @@ describe('Tabs', () => {
     test('switches between views', async () => {
         const user = renderUi(<Tabs items={[{ key: 'a', label: 'Details', children: 'Details view' }, { key: 'b', label: 'History', children: 'History view' }]} />);
 
-        await user.click(screen.getByRole('tab', { name: 'History' }));
+        await user.click(await screen.findByRole('tab', { name: 'History' }));
 
         expect(screen.getByRole('tab', { name: 'History' })).toHaveAttribute('aria-selected', 'true');
         expect(await screen.findByText('History view')).toBeVisible();
@@ -168,6 +182,7 @@ describe('UiProvider texts and direction', () => {
     test('Ant Design parts follow the direction', async () => {
         renderWithTexts(<Table label="Users" columns={[{ key: 'name', title: 'Name', dataIndex: 'name' }]} data={[]} />);
 
-        expect(document.querySelector('.ant-table-wrapper-rtl')).toBeInTheDocument();
+        // The table loads on first use
+        await waitFor(() => expect(document.querySelector('.ant-table-wrapper-rtl')).toBeInTheDocument());
     });
 });

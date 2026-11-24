@@ -1,4 +1,4 @@
-import { theme as antdThemes } from 'antd';
+import antdThemes from 'antd/es/theme';
 
 // Ant Design takes colours as JS values, not CSS variables, so its theme is read from theme.css at runtime:
 // theme.css stays the only place colours are defined. Called again whenever the theme changes.

@@ -65,7 +65,17 @@
     "dashboard": {
         "title": "Dashboard",
         "welcome": "Welcome, {name}",
-        "placeholder": "This is a placeholder page. Build your app's home page here."
+        "placeholder": "This is a placeholder page. Build your app's home page here.",
+        "account": "Your account",
+        "accountFailed": "Your account could not be loaded",
+        "newestUsers": "Newest users",
+        "usersFailed": "The users could not be loaded",
+        "noUsers": "No users yet",
+        "usersTotal": {
+            "one": "{count} user in total",
+            "other": "{count} users in total"
+        },
+        "gettingStarted": "Getting started"
     },
     "profile": {
         "title": "Profile",
@@ -126,7 +136,9 @@
         "notFoundText": "Sorry, the page you visited does not exist.",
         "backHome": "Back Home",
         "accessDeniedTitle": "Access denied",
-        "accessDeniedText": "You don't have permission to open this page."
+        "accessDeniedText": "You don't have permission to open this page.",
+        "loadFailed": "This could not be loaded",
+        "tryAgain": "Try again"
     },
     "validation": {
         "identifierRequired": "Email or username is required!",

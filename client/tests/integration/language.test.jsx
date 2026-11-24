@@ -79,7 +79,8 @@ describe('language', () => {
         expect(within(nav).getByText('تسجيل الخروج')).toBeInTheDocument();
         expect(within(nav).getByText('مسؤول')).toBeInTheDocument();
         expect(await screen.findByText('عرض ٢٠ من ٢٥ (الصفحة ١ من ٢)')).toBeInTheDocument();
-        expect(screen.getByRole('columnheader', { name: 'تاريخ الانضمام' })).toBeInTheDocument();
+        // The table loads on first use
+        expect(await screen.findByRole('columnheader', { name: 'تاريخ الانضمام' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'الصفحة التالية' })).toBeInTheDocument();
         // Page buttons show their number in Arabic digits, and say it the same way
         expect(screen.getByRole('button', { name: 'الصفحة ٢' })).toHaveTextContent('٢');

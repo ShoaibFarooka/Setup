@@ -1,4 +1,4 @@
-import { theme as antdThemes } from 'antd';
+import antdThemes from 'antd/es/theme';
 import { getAntdTheme } from '@/components/ui/UiProvider/antdTheme';
 
 const html = document.documentElement;

@@ -30,3 +30,16 @@ describe('getLandingPage', () => {
         expect(getLandingPage('guest')).toBeNull();
     });
 });
+
+describe('getLandingPage with a grouped menu', () => {
+    test('the first page inside the first group when the menu starts with a group', async () => {
+        vi.resetModules();
+        vi.doMock('@/constants/menuItems', () => ({
+            menuItems: { admin: [{ key: 'sales', label: 'Sales', items: [{ path: '/orders', label: 'Orders' }] }, { path: '/profile', label: 'Profile' }] },
+        }));
+        const { getLandingPage: landingOf } = await import('@/utils/accessUtils');
+
+        expect(landingOf('admin')).toBe('/orders');
+        vi.doUnmock('@/constants/menuItems');
+    });
+});

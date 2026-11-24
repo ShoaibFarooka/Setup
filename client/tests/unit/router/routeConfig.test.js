@@ -3,6 +3,7 @@ import routes from '@/router/RouteConfig';
 import { menuItems } from '@/constants/menuItems';
 import { ALL_ROLES } from '@/constants/appConstants';
 import { canAccess } from '@/utils/accessUtils';
+import { menuPages } from '@/utils/menuUtils';
 
 describe('routes', () => {
     test('every protected route lists the roles that may open it', () => {
@@ -14,7 +15,8 @@ describe('routes', () => {
 
     // A menu link to a page the role may not open would only lead to "Access denied"
     test.each(Object.keys(menuItems))('every menu item of %s leads to a page the role may open', (role) => {
-        menuItems[role].forEach(({ path }) => {
+        // Pages inside groups count too
+        menuPages(menuItems[role]).forEach(({ path }) => {
             const route = routes.find((candidate) => candidate.path !== '*' && matchPath(candidate.path, path));
 
             expect(route, path).toBeDefined();

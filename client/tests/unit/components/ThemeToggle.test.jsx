@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import ThemeProvider from '@/contexts/ThemeProvider';
 import LanguageProvider from '@/contexts/LanguageProvider';
 import ThemeToggle from '@/components/ThemeToggle/ThemeToggle';
+import toggleStyles from '@/components/ThemeToggle/ThemeToggle.module.css';
 import useTheme from '@/hooks/useTheme';
 import { STORAGE_KEY } from '@/lib/theme';
 import { changeSystemTheme, fakeSystemTheme } from '../../helpers/matchMedia';
@@ -24,6 +25,16 @@ describe('theme toggle', () => {
 
         expect(screen.getByRole('button', { name: 'Theme: System. Switch to light' })).toBeInTheDocument();
         expect(html).toHaveAttribute('data-theme', 'dark');
+    });
+
+    test('the icon turns into place after a click, not when the page appears', async () => {
+        const user = renderToggle();
+        const icon = () => screen.getByRole('button', { name: /^Theme:/ }).querySelector('span');
+        expect(icon()).not.toHaveClass(toggleStyles.turnIn);
+
+        await user.click(screen.getByRole('button', { name: /^Theme:/ }));
+
+        expect(icon()).toHaveClass(toggleStyles.turnIn);
     });
 
     test('cycles light → dark → system, applying and remembering each choice', async () => {

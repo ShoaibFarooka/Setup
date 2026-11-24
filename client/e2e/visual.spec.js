@@ -1,4 +1,4 @@
-import { THEMES, accounts, expect, pageReady, test, useLanguage } from './fixtures';
+import { THEMES, accounts, expect, fillMenu, pageReady, test, useLanguage } from './fixtures';
 
 // Screenshots compared with approved ones (e2e/__screenshots__): an unintended visual change fails the test
 // and test-results/ gets the expected, actual and diff images. After an intended design change, look at the new
@@ -126,4 +126,15 @@ test('the phone menu drawer in Arabic looks as approved (opens from the right)',
     await expect(page.getByRole('button', { name: 'إغلاق القائمة' })).toBeVisible();
 
     await expect(page).toHaveScreenshot('menu-open-ar-light.png');
+});
+
+test('the sidebar with many pages looks as approved', async ({ page, loginAs, openMenu }) => {
+    await page.emulateMedia({ colorScheme: 'light' });
+    await loginAs();
+    await page.goto('/dashboard');
+    await pageReady(page, 'Dashboard');
+    await openMenu();
+    await fillMenu(page);
+
+    await expect(page).toHaveScreenshot('sidebar-many-pages-light.png');
 });

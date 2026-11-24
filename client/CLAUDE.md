@@ -39,6 +39,12 @@ Unit tests run in jsdom: no layout, no media queries, no real server. They canno
 - **State:** server data in the TanStack Query cache (never copied into context or state); the session in `AuthProvider` / `useAuth()`; component UI state in `useState`. No Redux.
 - **Config:** only `src/config/appConfig.js` reads `import.meta.env`. A new variable needs `appConfig`, `.env.example` and the README table. Never put secrets in `VITE_` variables (they are built into the app).
 
+## Loading data (details in README "Loading data")
+
+- Static parts render at once; every data section gets its own query and its own states through `QueryBoundary` (`components/QueryBoundary`): `Skeleton` shaped like the content, an error with Try again, an empty message, the content. The dashboard is the example.
+- Never a full-screen loader or an empty page while a page's data loads; full-screen loaders are only for the app frame (session check, a page's code, blocking actions like logging out).
+- A refetch or the next page keeps the current content on screen (`keepPreviousData`, dimmed); no skeleton again.
+
 ## Lists (details in README "Lists with pagination"; copy the admin Users page)
 
 - The server pages every list (contract in `../CLAUDE.md`); never fetch everything and page in the browser.
@@ -47,7 +53,8 @@ Unit tests run in jsdom: no layout, no media queries, no real server. They canno
 
 ## Performance and security (details in README "Performance" and "Security")
 
-- First-page JavaScript stays under 250 KB gzip; compare `npm run build` sizes before and after a change that adds code to it. New dependencies need approval with their size.
+- First-page JavaScript (everything `dist/index.html` loads, gzipped; README "Performance" has the command) stays under 250 KB; measure before and after a change that adds code to it. New dependencies need approval with their size.
+- Heavy Ant Design components load on demand in their ui wrapper (`lazy(() => import('antd/es/<component>'))`, like Table, Tabs, Modal, Dropdown). Inside `components/ui` every Ant Design import uses these per-component paths (`import Dropdown from 'antd/es/dropdown'`), never `'antd'`: mixing both loads a second copy in tests, outside the theme (ESLint refuses it).
 - Heavy parts (charts, editors, maps) behind `lazy()` too; images with `loading="lazy"`, width and height, a fitting size and a modern format; long lists paged or virtualized; no `memo` / `useMemo` / `useCallback` without a measured reason; independent queries in parallel.
 - Never `dangerouslySetInnerHTML` (ask first; sanitize with DOMPurify if unavoidable); external links `rel="noopener noreferrer"`; never log tokens or personal data; redirects only to paths inside the app; no secrets in client code or `VITE_` variables.
 
@@ -66,7 +73,7 @@ Unit tests run in jsdom: no layout, no media queries, no real server. They canno
 ## Auth and routes
 
 - The access token lives in memory only (`lib/session.js`). Never store tokens in localStorage, sessionStorage or JS-readable cookies.
-- Routes in `router/RouteConfig.jsx` (`protected`, `roles`, `guestOnly`, `showSidebar`). Every protected route lists its `roles` (from `ROLES` / `ALL_ROLES`, matching the server's); that alone decides access. `constants/menuItems.jsx` is navigation only.
+- Routes in `router/RouteConfig.jsx` (`protected`, `roles`, `guestOnly`, `showSidebar`). Every protected route lists its `roles` (from `ROLES` / `ALL_ROLES`, matching the server's); that alone decides access. `constants/menuItems.jsx` is navigation only: entries are pages `{ path, labelKey, icon }`, or groups `{ key, labelKey, items }` when a project has many pages (flat or grouped, both work); read entries with `utils/menuUtils.js`.
 - Pages are imported with `lazy()` in `RouteConfig.jsx`. `Router.jsx` groups them as layout routes (session check → `AppLayout` → `RequireRole` → `PageFrame`); the layout stays mounted between pages, so never re-create it inside a page. Don't import pages directly elsewhere (it would put them back into the main bundle).
 - Every page starts with exactly one `<h1>` (use `PageHeader`): after a navigation, focus moves to it for screen readers (without a focus ring), unless the page focused one of its own fields (`autoFocus`). Never give `tabindex="-1"` elements a visible focus style. Keep the "Skip to content" link and `id="main-content"` in `AppLayout`.
 - Logout only through `useLogout()` (it clears the query cache).

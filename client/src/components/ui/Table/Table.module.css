@@ -14,3 +14,8 @@
     width: max-content;
     min-width: 100%;
 }
+
+/* While Ant Design's table downloads (the first table of a visit): a skeleton the size of a few rows */
+.loading {
+    padding: var(--space-4);
+}

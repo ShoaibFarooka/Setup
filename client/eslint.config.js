@@ -68,6 +68,19 @@ export default [
         },
     },
 
+    // Inside components/ui, Ant Design comes from its per-component paths (antd/es/<component>), like the parts
+    // that load on demand (lazy(() => import('antd/es/table'))). Mixing in 'antd' would load a second copy where it
+    // resolves to antd/lib (tests), whose theme and direction would not reach the other.
+    {
+        files: ['src/components/ui/**/*.{js,jsx}'],
+        rules: {
+            'no-restricted-imports': ['error', {
+                paths: [{ name: 'antd', message: "Import from Ant Design's own path, e.g. antd/es/table (one copy for every part)." }],
+                patterns: [{ group: ['antd/lib/*'], message: 'Use antd/es/<component>, not antd/lib.' }],
+            }],
+        },
+    },
+
     {
         files: ['tests/**/*.{js,jsx}', 'e2e/**/*.js', 'playwright.config.js', 'vite.config.js'],
         languageOptions: { globals: { ...globals.node, ...globals.vitest } },

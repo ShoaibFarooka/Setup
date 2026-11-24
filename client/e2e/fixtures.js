@@ -59,4 +59,15 @@ export const readEmail = async (to) => {
     return JSON.parse(readFileSync(file, 'utf8'));
 };
 
+// A long menu for layout checks: adds 40 entries to the sidebar (copies of a menu link) on the current page
+export const fillMenu = (page) => page.evaluate(() => {
+    const link = document.querySelector('nav a[href="/profile"]');
+    for (let i = 1; i <= 40; i++) {
+        const copy = link.cloneNode(true);
+        copy.removeAttribute('aria-current');
+        copy.querySelector('div').textContent = `Extra page ${i}`;
+        link.parentElement.insertBefore(copy, link.parentElement.lastElementChild);
+    }
+});
+
 export { expect };
