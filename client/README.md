@@ -240,7 +240,7 @@ const Profile = lazy(() => import('@/pages/profile/Profile/Profile'));
   - Pages that are neither (404, reset password) open for everyone, logged in or not.
   - Every page goes through `router/PageFrame.jsx`: its error boundary, the loader while its code downloads, and the entry animation.
 - **Keyboard and screen readers:** the first link on app pages is **Skip to content** (visible when focused), which jumps over the sidebar. After moving to another page (a redirect included), focus goes to the new page's `<h1>`, so screen readers announce the change (single-page apps don't do this by themselves). A page that puts focus in itself first keeps it (the login form's `autoFocus` email field), and the first page load keeps the browser's focus. The heading and the skip link's `<main>` target show no focus ring (`[tabindex='-1']:focus` in `base.css`): they are focused only to guide screen readers, not to be operated; controls keep their ring. Every page therefore starts with one `<h1>` (`PageHeader` renders it).
-- **Access by role** is the route's `roles` (required for protected routes; a protected route without it is open to no one). Roles are in `ROLES` / `ALL_ROLES` (`constants/appConstants.js`) and match the server's (`admin`, `user`); labels are in `ROLE_LABELS`.
+- **Access by role** is the route's `roles` (required for protected routes; a protected route without it is open to no one). Roles are in `ROLES` / `ALL_ROLES` (`constants/appConstants.js`) and match the server's (`admin`, `user`); their names people see are `roles.<role>` in `src/locales/*.json`.
 - **The menu** of each role is `constants/menuItems.jsx`; it is navigation only. The first page is where the role lands after login. Pages that are not in the menu (details, edit forms) and paths with parameters work like any other route. A test checks that every menu item leads to a page the role may open.
   - **Many pages:** only the menu scrolls; the logo and the footer (language, theme, user) stay in view, and the current page's link scrolls into view. A project with many pages can **group** them: an entry is either a page `{ path, labelKey, icon }` or a group `{ key, labelKey, icon?, items: [pages] }` (`labelKey`: a text in `src/locales/*.json`; `label` instead shows a text as it is, e.g. a name), and a role's list can mix both (or stay flat, like the example). Groups are one level deep, start folded, open by themselves when they hold the current page (and keep their name in the brand colour when folded), and their button tells screen readers whether it is open (`aria-expanded`); the current page's link has `aria-current="page"`. `utils/menuUtils.js` (`menuPages`, `groupOfPath`) reads both kinds of entries.
 - **Lazy pages:** each page is imported with `lazy()`, so it is downloaded the first time it is opened instead of with the app. A loader shows meanwhile.
@@ -284,7 +284,7 @@ A page never waits for all of its data before showing anything, and never covers
 2. **Each data section loads on its own:** one query hook per section, wrapped in `components/QueryBoundary`, which gives it every state: a `Skeleton` shaped like the content on the first load (marked `aria-busy`), an `Alert` with **Try again** (refetches only this section) when it fails, an `empty` message, or the content. One slow or failing request never holds up or breaks the others, and independent sections load in parallel.
 
    ```jsx
-   <Card title="Newest users">
+   <Card title={t('dashboard.newestUsers')}>
        <QueryBoundary query={useUsers(NEWEST)} skeleton={<Skeleton lines={5} />} errorTitle={t('dashboard.usersFailed')}
            isEmpty={(data) => data.items.length === 0} empty={<EmptyState title={t('dashboard.noUsers')} titleAs="p" />}>
            {({ items }) => <UserList users={items} />}
@@ -350,13 +350,14 @@ The simple components are our own (CSS Modules + theme tokens), so every project
 Each component's file starts with a comment describing its props. Examples:
 
 ```jsx
-<FormField label="Email" error={errors.email} hint="We never share it">
+// Every visible text from src/locales/*.json (README "Languages")
+<FormField label={t('profile.email')} error={errors.email && t(errors.email)} hint={t('products.emailHint')}>
     <Input name="email" value={values.email} onChange={handleChange} />
 </FormField>
 
-<Button variant="secondary" icon={<FiPlus />} loading={create.isPending} onClick={handleCreate}>New product</Button>
+<Button variant="secondary" icon={<FiPlus />} loading={create.isPending} onClick={handleCreate}>{t('products.new')}</Button>
 
-<Card title="Orders" actions={<Button size="sm">Export</Button>}>...</Card>
+<Card title={t('orders.title')} actions={<Button size="sm">{t('orders.export')}</Button>}>...</Card>
 
 confirm({ title: 'Delete product?', confirmText: 'Delete', danger: true, onConfirm: () => remove.mutateAsync(id) });
 ```
