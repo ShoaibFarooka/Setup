@@ -1,4 +1,5 @@
-import { message, Modal } from 'antd';
+import message from 'antd/es/message';
+import Modal from 'antd/es/modal';
 
 // Toasts and confirm dialogs that work from anywhere, including outside React (e.g. the query client).
 // UiProvider registers Ant Design's context-aware versions, so they follow the theme; the static

@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, configure } from '@testing-library/react';
-import { message, Modal } from 'antd';
+import message from 'antd/es/message';
+import Modal from 'antd/es/modal';
 import { server } from '../mocks/server';
 import { session } from '@/lib/session';
 

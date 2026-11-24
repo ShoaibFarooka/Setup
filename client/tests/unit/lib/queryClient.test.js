@@ -1,4 +1,4 @@
-import { message } from 'antd';
+import message from 'antd/es/message';
 import { createQueryClient } from '@/lib/queryClient';
 import { ApiError } from '@/lib/apiError';
 

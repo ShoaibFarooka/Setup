@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo } from 'react';
-import { App as AntdApp, ConfigProvider } from 'antd';
+import AntdApp from 'antd/es/app';
+import ConfigProvider from 'antd/es/config-provider';
 import useTheme from '@/hooks/useTheme';
 import { getAntdTheme } from './antdTheme';
 import { registerFeedback, resetFeedback } from '../feedback/feedback';

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import AntdButton from 'antd/es/button';
 import ThemeProvider from '@/contexts/ThemeProvider';
 import { Button, DropdownMenu, Modal, Table, Tabs, Tooltip, UiProvider, confirm, toast } from '@/components/ui';
 
@@ -59,6 +60,18 @@ describe('Table', () => {
         renderUi(<Table columns={columns} data={[]} emptyText="No products yet" />);
 
         expect(await screen.findByText('No products yet')).toBeInTheDocument();
+    });
+
+    // The table loads on demand from antd/es/table: it must still be inside UiProvider's theme (the same Ant Design
+    // copy), not a second, unthemed one
+    test('the table that loads on demand gets the same theme as Ant Design parts loaded up front', async () => {
+        renderUi(<><AntdButton>Up front</AntdButton><Table label="Products" columns={columns} data={[]} /></>);
+        await screen.findByRole('table');
+
+        const themeClass = (element) => [...element.classList].find((name) => name.startsWith('css-var-'));
+        const tableWrapper = screen.getByRole('region', { name: 'Products' }).firstElementChild;
+        expect(themeClass(tableWrapper)).toBe(themeClass(screen.getByRole('button', { name: 'Up front' })));
+        expect(themeClass(tableWrapper)).not.toBe('css-var-root');
     });
 });
 

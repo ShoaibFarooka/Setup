@@ -1,4 +1,4 @@
-import { Dropdown } from 'antd';
+import Dropdown from 'antd/es/dropdown';
 
 // A menu that opens from a trigger (the child, e.g. an IconButton with a "more" icon).
 // items: [{ key, label, icon?, danger?, disabled?, onClick }]; opens on click, works with the keyboard.

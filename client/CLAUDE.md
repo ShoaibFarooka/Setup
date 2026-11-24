@@ -48,7 +48,7 @@ Unit tests run in jsdom: no layout, no media queries, no real server. They canno
 ## Performance and security (details in README "Performance" and "Security")
 
 - First-page JavaScript (everything `dist/index.html` loads, gzipped; README "Performance" has the command) stays under 250 KB; measure before and after a change that adds code to it. New dependencies need approval with their size.
-- Heavy Ant Design components load on demand in their ui wrapper (`lazy(() => import('antd/es/<component>'))`, like Table, Tabs, Modal); never `import ... from 'antd'` for them.
+- Heavy Ant Design components load on demand in their ui wrapper (`lazy(() => import('antd/es/<component>'))`, like Table, Tabs, Modal). Inside `components/ui` every Ant Design import uses these per-component paths (`import Dropdown from 'antd/es/dropdown'`), never `'antd'`: mixing both loads a second copy in tests, outside the theme (ESLint refuses it).
 - Heavy parts (charts, editors, maps) behind `lazy()` too; images with `loading="lazy"`, width and height, a fitting size and a modern format; long lists paged or virtualized; no `memo` / `useMemo` / `useCallback` without a measured reason; independent queries in parallel.
 - Never `dangerouslySetInnerHTML` (ask first; sanitize with DOMPurify if unavoidable); external links `rel="noopener noreferrer"`; never log tokens or personal data; redirects only to paths inside the app; no secrets in client code or `VITE_` variables.
 
