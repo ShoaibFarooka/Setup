@@ -1,0 +1,8 @@
+/* Cards side by side where there is room (at least 400px each, so values like an email address fit on one line),
+   sharing the width between them; one under the other on narrower screens */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr));
+    align-items: start;
+    gap: var(--space-4);
+}

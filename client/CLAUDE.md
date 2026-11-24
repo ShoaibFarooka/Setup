@@ -39,6 +39,12 @@ Unit tests run in jsdom: no layout, no media queries, no real server. They canno
 - **State:** server data in the TanStack Query cache (never copied into context or state); the session in `AuthProvider` / `useAuth()`; component UI state in `useState`. No Redux.
 - **Config:** only `src/config/appConfig.js` reads `import.meta.env`. A new variable needs `appConfig`, `.env.example` and the README table. Never put secrets in `VITE_` variables (they are built into the app).
 
+## Loading data (details in README "Loading data")
+
+- Static parts render at once; every data section gets its own query and its own states through `QueryBoundary` (`components/QueryBoundary`): `Skeleton` shaped like the content, an error with Try again, an empty message, the content. The dashboard is the example.
+- Never a full-screen loader or an empty page while a page's data loads; full-screen loaders are only for the app frame (session check, a page's code, blocking actions like logging out).
+- A refetch or the next page keeps the current content on screen (`keepPreviousData`, dimmed); no skeleton again.
+
 ## Lists (details in README "Lists with pagination"; copy the admin Users page)
 
 - The server pages every list (contract in `../CLAUDE.md`); never fetch everything and page in the browser.
@@ -60,7 +66,7 @@ Unit tests run in jsdom: no layout, no media queries, no real server. They canno
 ## Auth and routes
 
 - The access token lives in memory only (`lib/session.js`). Never store tokens in localStorage, sessionStorage or JS-readable cookies.
-- Routes in `router/RouteConfig.jsx` (`protected`, `roles`, `guestOnly`, `showSidebar`). Every protected route lists its `roles` (from `ROLES` / `ALL_ROLES`, matching the server's); that alone decides access. `constants/menuItems.jsx` is navigation only.
+- Routes in `router/RouteConfig.jsx` (`protected`, `roles`, `guestOnly`, `showSidebar`). Every protected route lists its `roles` (from `ROLES` / `ALL_ROLES`, matching the server's); that alone decides access. `constants/menuItems.jsx` is navigation only: entries are pages, or groups `{ key, label, items }` when a project has many pages (flat or grouped, both work); read entries with `utils/menuUtils.js`.
 - Pages are imported with `lazy()` in `RouteConfig.jsx`. `Router.jsx` groups them as layout routes (session check → `AppLayout` → `RequireRole` → `PageFrame`); the layout stays mounted between pages, so never re-create it inside a page. Don't import pages directly elsewhere (it would put them back into the main bundle).
 - Every page starts with exactly one `<h1>` (use `PageHeader`): after a navigation, focus moves to it for screen readers (without a focus ring), unless the page focused one of its own fields (`autoFocus`). Never give `tabindex="-1"` elements a visible focus style. Keep the "Skip to content" link and `id="main-content"` in `AppLayout`.
 - Logout only through `useLogout()` (it clears the query cache).

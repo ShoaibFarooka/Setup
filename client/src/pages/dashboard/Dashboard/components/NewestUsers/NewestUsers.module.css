@@ -1,0 +1,33 @@
+.total {
+    margin-bottom: var(--space-3);
+    color: var(--color-text-muted);
+}
+
+.list {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--color-text);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.date {
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+}

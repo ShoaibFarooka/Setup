@@ -19,6 +19,7 @@ React web app boilerplate for the [server](../server/README.md): login with mult
 - [Form validation](#form-validation)
 - [Pages, routes and roles](#pages-routes-and-roles)
 - [Adding a new feature](#adding-a-new-feature)
+- [Loading data](#loading-data)
 - [Lists with pagination](#lists-with-pagination)
 - [UI components](#ui-components)
 - [Theme (light and dark)](#theme-light-and-dark)
@@ -95,7 +96,7 @@ client/
 │   ├── components/          Shared by several pages (a part only one page uses lives in that page's own components/)
 │   │   ├── ui/              The UI kit, app-agnostic: Button, Input, FormField, Card, Table, Modal, toast, ... (index.js)
 │   │   ├── layout/          The frame of the app: AppLayout, Sidebar, AuthContainer, PageHeader
-│   │   └── ...              Other app pieces: ErrorBoundary, Loader, ConnectionError, BrandLogo, ThemeToggle
+│   │   └── ...              Other app pieces: ErrorBoundary, Loader, ConnectionError, QueryBoundary, BrandLogo, ThemeToggle
 │   ├── pages/               One folder per feature (auth/, errors/, dashboard/, profile/, users/), one subfolder per page
 │   ├── router/              RouteConfig.jsx (the routes), Router.jsx, ProtectedRoute / GuestRoute (access), LandingRedirect.jsx (/ → start page)
 │   ├── constants/           App name, role labels, menu per role
@@ -217,7 +218,8 @@ const Profile = lazy(() => import('@/pages/profile/Profile/Profile'));
   - Every page goes through `router/PageFrame.jsx`: its error boundary, the loader while its code downloads, and the entry animation.
 - **Keyboard and screen readers:** the first link on app pages is **Skip to content** (visible when focused), which jumps over the sidebar. After moving to another page (a redirect included), focus goes to the new page's `<h1>`, so screen readers announce the change (single-page apps don't do this by themselves). A page that puts focus in itself first keeps it (the login form's `autoFocus` email field), and the first page load keeps the browser's focus. The heading and the skip link's `<main>` target show no focus ring (`[tabindex='-1']:focus` in `base.css`): they are focused only to guide screen readers, not to be operated; controls keep their ring. Every page therefore starts with one `<h1>` (`PageHeader` renders it).
 - **Access by role** is the route's `roles` (required for protected routes; a protected route without it is open to no one). Roles are in `ROLES` / `ALL_ROLES` (`constants/appConstants.js`) and match the server's (`admin`, `user`); labels are in `ROLE_LABELS`.
-- **The menu** of each role is `constants/menuItems.jsx`; it is navigation only. The first item is where the role lands after login. Pages that are not in the menu (details, edit forms) and paths with parameters work like any other route. A test checks that every menu item leads to a page the role may open.
+- **The menu** of each role is `constants/menuItems.jsx`; it is navigation only. The first page is where the role lands after login. Pages that are not in the menu (details, edit forms) and paths with parameters work like any other route. A test checks that every menu item leads to a page the role may open.
+  - **Many pages:** only the menu scrolls; the logo and the footer (user, theme) stay in view, and the current page's link scrolls into view. A project with many pages can **group** them: an entry is either a page `{ path, label, icon }` or a group `{ key, label, icon?, items: [pages] }`, and a role's list can mix both (or stay flat, like the example). Groups are one level deep, start folded, open by themselves when they hold the current page (and keep their name in the brand colour when folded), and their button tells screen readers whether it is open (`aria-expanded`); the current page's link has `aria-current="page"`. `utils/menuUtils.js` (`menuPages`, `groupOfPath`) reads both kinds of entries.
 - **Lazy pages:** each page is imported with `lazy()`, so it is downloaded the first time it is opened instead of with the app. A loader shows meanwhile.
 - **Errors:** every page is wrapped in an `ErrorBoundary`. If a page crashes while rendering, or its code fails to download (e.g. after a new deploy), it shows "Something went wrong" with **Reload page** instead of a blank screen, and the sidebar keeps working. A second boundary in `App.jsx` catches failures outside pages. Errors in event handlers and requests are not render errors: those go through `ApiError` and the error messages above.
 
@@ -247,9 +249,30 @@ The steps for a new feature, with `products` (a list and a create form) as the e
 2. **Query keys:** add `products: { all: ['products'], list: (params) => ['products', 'list', params] }` to `hooks/queryKeys.js`.
 3. **Hooks:** `hooks/useProducts.js` (`useQuery` with `keepPreviousData`, like `useUsers`) and `hooks/useCreateProduct.js` (`useMutation` that invalidates `queryKeys.products.all` on success). The list page follows "Lists with pagination" below.
 4. **Validation:** `src/validations/productValidations.js` with a Yup schema for the create form (mirroring the server's rules).
-5. **Page:** `pages/products/Products/Products.jsx` with `PageHeader` and parts from `@/components/ui` (`Card`, `Table`, `FormField`, `Button`, ...), using the hooks and `validateForm(productSchema, values)`; show `isPending` (`Skeleton` / `Spinner`) and `isError` (`EmptyState` / `Alert`) states.
+5. **Page:** `pages/products/Products/Products.jsx` with `PageHeader` and parts from `@/components/ui` (`Card`, `Table`, `FormField`, `Button`, ...), using the hooks and `validateForm(productSchema, values)`; static parts render at once, and each data section gets its states through `QueryBoundary` (see "Loading data").
 6. **Route and menu:** add it to `router/RouteConfig.jsx` with `lazy()` and the `roles` that may open it, and to those roles' menus in `constants/menuItems.jsx` if it should appear in the sidebar.
 7. **Tests:** fake the server routes in `tests/mocks/handlers.js` (or per test with `server.use(...)`) using `success()` / `failure()`, then test the page with `renderApp({ route: '/products' })` and the schema in `tests/unit/validations/`. Add an E2E test for the flow in `e2e/`, the page to `e2e/a11y.spec.js` and `e2e/visual.spec.js`, then run those specs (`npx playwright test e2e/products.spec.js`, and `e2e/visual.spec.js -g "products"`) and look at the new screenshots. Which tests a change needs: "Testing levels" in `../CLAUDE.md`.
+
+## Loading data
+
+A page never waits for all of its data before showing anything, and never covers itself with a loader for its data.
+
+1. **Static parts show at once:** the heading, texts, buttons and forms that need no data render right away.
+2. **Each data section loads on its own:** one query hook per section, wrapped in `components/QueryBoundary`, which gives it every state: a `Skeleton` shaped like the content on the first load (marked `aria-busy`), an `Alert` with **Try again** (refetches only this section) when it fails, an `empty` message, or the content. One slow or failing request never holds up or breaks the others, and independent sections load in parallel.
+
+   ```jsx
+   <Card title="Newest users">
+       <QueryBoundary query={useUsers(NEWEST)} skeleton={<Skeleton lines={5} />} errorTitle="The users could not be loaded"
+           isEmpty={(data) => data.items.length === 0} empty={<EmptyState title="No users yet" titleAs="p" />}>
+           {({ items }) => <UserList users={items} />}
+       </QueryBoundary>
+   </Card>
+   ```
+
+3. **Refreshing keeps what is there:** a refetch, or the next page of a list, shows the current content (dimmed if useful, like the users table) instead of a skeleton again; a failed refresh keeps the data already shown.
+4. **Full-screen loaders only for the app frame:** the session check when the app opens, a page's code downloading (inside the content area; the sidebar stays usable), and actions that must block (logging out). Never for a page's data.
+
+The dashboard is the example: its heading and "Getting started" card render at once, "Your account" and (for admins) "Newest users" each load, fail and retry on their own (`tests/integration/dashboard.test.jsx`). Lists add their own rules (next section).
 
 ## Lists with pagination
 
@@ -512,6 +535,7 @@ npx playwright show-report                   # the HTML report of the last run
 |---|---|
 | `auth.spec.js` | logging in (right, wrong, empty), returning to the page asked for, the session surviving a reload, logging out, "log out of all devices" ending another device's session |
 | `access.spec.js` | visitors sent to login, the 404 page, each role's pages and details, sidebar navigation and the phone menu drawer |
+| `sidebar.spec.js` | a menu with many pages (40 added by `fillMenu()` from `fixtures.js`): only the menu scrolls, the logo and the footer stay in view, on desktop and in the phone drawer |
 | `users.spec.js` | the admin users list: pages, search (also after a reload), no matches; other roles without access |
 | `password-input.spec.js` | the show / hide password button on login and reset password, pressed like a person does (held, at its top, middle and bottom, alternating between fields) |
 | `password-reset.spec.js` | forgot password end to end: the email the server wrote, its link, the new password logging in and the old one refused, the link working only once; an unknown email; a link without a token |

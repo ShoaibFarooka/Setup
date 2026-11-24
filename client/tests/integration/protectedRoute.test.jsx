@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { renderApp, loggedIn } from '../helpers/renderApp';
 import { server } from '../mocks/server';
@@ -65,6 +65,7 @@ describe('protected pages', () => {
 
         expect(screen.getByRole('link', { name: /Dashboard/ })).toBeInTheDocument();
         expect(screen.getByRole('link', { name: /Profile/ })).toBeInTheDocument();
-        expect(screen.getByText('Admin')).toBeInTheDocument();
+        // The role in the sidebar's user card (the dashboard shows it too)
+        expect(within(screen.getByRole('navigation')).getByText('Admin')).toBeInTheDocument();
     });
 });
