@@ -12,8 +12,23 @@ Work inside the part you change, and follow its `CLAUDE.md`. This file holds the
 Read them in this order; a later file adds detail, it never silently overrides an earlier one:
 
 1. The user's personal instructions (`~/.claude/CLAUDE.md`): commits, scope, temporary files.
-2. This file: approvals, testing levels, the contract between server and client, end-to-end tests.
+2. This file: branches, approvals, testing levels, the contract between server and client, end-to-end tests.
 3. `server/CLAUDE.md` or `client/CLAUDE.md` for the part you change, then the matching `README.md` section for details.
+
+## Branches (two versions, on purpose)
+
+The boilerplate has two long-lived branches; a new project is cloned from one of them (README "Two versions"):
+
+- `main`: English only.
+- `feature/i18n-arabic`: `main` plus languages (English and Arabic, right to left; contract "Languages" there).
+
+Keep them in step, always in this direction:
+
+1. **Check the branch first.** Every change starts by knowing which branch it belongs to.
+2. **Anything that is not about languages** (features, fixes, rules, tests, tooling) is made on `main` first, with its tests, then `main` is merged into `feature/i18n-arabic`. There, its new visible texts get keys in both language files (the parity tests fail otherwise), and it is checked in Arabic too (the testing level it needs). Both branches are pushed.
+3. **Language work** (texts, translations, right to left, the language switch, `Accept-Language`) is made only on `feature/i18n-arabic`.
+4. **Never merge `feature/i18n-arabic` into `main`,** and never cherry-pick language work into it. A request on the language branch that is not about languages is made on `main` first; if that is unclear, ask.
+5. Merge conflicts keep both sides' intent: `main`'s change, in the language branch's translated form.
 
 ## Rules and approvals
 
