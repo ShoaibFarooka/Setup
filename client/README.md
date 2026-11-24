@@ -576,8 +576,8 @@ npx playwright show-report                   # the HTML report of the last run
 
 - A visual test fails when a page looks different from its approved screenshot; `test-results/` then has the expected, actual and diff images.
 - After an intended change, `npm run e2e:update` saves the new ones. **Look at them before committing**: an approved screenshot is a promise that the page looks right.
-- Screenshots are stored per operating system (`-win32`, `-linux`, ...), because fonts render slightly differently. In CI they are usually made inside Playwright's Docker image so they match exactly.
-- Animations are turned off and the web font is awaited, so runs are stable. Up to 100 differing pixels are allowed (a fixed count, not a percentage, so even a small new button in a corner fails the test).
+- Screenshots are stored per operating system (`-win32`, `-linux`, ...), because fonts render slightly differently. Only the Windows ones (`-win32`) are committed, so on macOS, Linux or in CI every visual test fails at first: there, run `npm run e2e:update` once and **look at every new screenshot** before committing them. In CI they are usually made inside Playwright's Docker image so they match exactly.
+- Animations are turned off and the web font is awaited, so runs are stable. Up to 20 differing pixels are allowed (a fixed count, not a percentage, so even a small new button in a corner fails the test).
 - Assertions wait up to 10 seconds: logging in hashes the password on a real server, which takes a moment on a busy machine.
 
 **Disk:** `test-results/` and `playwright-report/` are replaced on every run (and git-ignored). The E2E server keeps its database in one fixed temp folder that every run empties. The Chromium download (in `%LOCALAPPDATA%\ms-playwright` on Windows) is shared by all projects.
