@@ -17,11 +17,11 @@ The repository keeps two versions of the boilerplate on purpose, as two long-liv
 | Branch | Version | Start from it when |
 |---|---|---|
 | `main` | English only | the app needs one language |
-| `feature/i18n-arabic` | English and Arabic (right to left), with a language switch and the server answering in the chosen language; more languages can be added | the app needs more than one language |
+| `i18n` | English and Arabic (right to left), with a language switch and the server answering in the chosen language; more languages can be added | the app needs more than one language |
 
 ```bash
 git clone -b main https://github.com/ShoaibFarooka/Setup.git my-app                  # English only
-git clone -b feature/i18n-arabic https://github.com/ShoaibFarooka/Setup.git my-app    # multilingual
+git clone -b i18n https://github.com/ShoaibFarooka/Setup.git my-app                  # multilingual
 ```
 
 The multilingual branch is `main` plus the language work: everything else is developed on `main` and merged into it, so both stay at the same level. The language branch is never merged into `main`. The rules for keeping them in step are in [`CLAUDE.md`](CLAUDE.md) ("Branches").
