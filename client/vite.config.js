@@ -44,6 +44,9 @@ export default defineConfig({
         // describe / test / expect / vi without imports, like Jest on the server
         globals: true,
         setupFiles: ['./tests/setup/setup.js'],
+        // The first test of a file also waits for the lazy parts it opens (the page, Ant Design's table) to load,
+        // which takes longer with coverage and with every file running at once (the pre-push hook): 5s was too tight
+        testTimeout: 15000,
         // Fixed server address, so tests never depend on client/.env; MSW answers requests to it
         env: { VITE_BASE_URL: 'http://api.test' },
         include: ['tests/**/*.test.{js,jsx}'],
