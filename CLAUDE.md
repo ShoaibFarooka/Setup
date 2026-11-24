@@ -17,6 +17,8 @@ Read them in this order; a later file adds detail, it never silently overrides a
 
 ## Branches (two versions, on purpose)
 
+**Only for the Setup repository itself.** A project made from it has one version and replaces this section with its own branch rules (README "Starting a new project", step 2). If you find this section in a project repository (its `origin` is not the Setup), it was not replaced yet: do not follow it, ask the user.
+
 The boilerplate has two long-lived branches; a new project is cloned from one of them (README "Two versions"):
 
 - `main`: English only.
