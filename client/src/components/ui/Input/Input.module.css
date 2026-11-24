@@ -78,3 +78,9 @@
     background-size: 5px 5px;
     background-repeat: no-repeat;
 }
+
+/* Right to left: the arrow sits at the start of the box (left), where the padding is; background-position has no
+   logical form, so it is set here */
+:global([dir='rtl']) .select {
+    background-position: 13px 50%, 18px 50%;
+}

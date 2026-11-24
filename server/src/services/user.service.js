@@ -18,10 +18,10 @@ const createUser = async (userData, role = 'user') => {
     const username = userData.username?.trim().toLowerCase();
 
     if (await userRepository.userExists({ email })) {
-        throwError('A user with that email has already been registered!', 409);
+        throwError('users.emailTaken', 409);
     }
     if (await userRepository.userExists({ username })) {
-        throwError('A user with that username has already been registered!', 409);
+        throwError('users.usernameTaken', 409);
     }
 
     const passwordDigest = await authUtils.hashPassword(password);
@@ -40,7 +40,7 @@ const createUser = async (userData, role = 'user') => {
 const fetchUser = async (userId) => {
     const user = await userRepository.findUserById(userId, userProjection);
     if (!user) {
-        throwError('User not found!', 404);
+        throwError('users.notFound', 404);
     }
 
     return user;
@@ -57,13 +57,13 @@ const updateProfile = async (userId, changes) => {
         // Another account with this email (keeping your own email is fine). The $ne operator is ours, not user
         // input, so it is marked trusted for sanitizeFilter (trusted() wraps the object that holds the operator).
         if (await userRepository.userExists({ email: update.email, _id: mongoose.trusted({ $ne: userId }) })) {
-            throwError('A user with that email has already been registered!', 409);
+            throwError('users.emailTaken', 409);
         }
     }
 
     const user = await userRepository.updateUserById(userId, update, { returnDocument: 'after', runValidators: true }, userProjection);
     if (!user) {
-        throwError('User not found!', 404);
+        throwError('users.notFound', 404);
     }
 
     return user;

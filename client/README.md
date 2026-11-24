@@ -17,6 +17,7 @@ React web app boilerplate for the [server](../server/README.md): login with mult
 - [Where state lives](#where-state-lives)
 - [Authentication](#authentication)
 - [Form validation](#form-validation)
+- [Languages](#languages)
 - [Pages, routes and roles](#pages-routes-and-roles)
 - [Adding a new feature](#adding-a-new-feature)
 - [Lists with pagination](#lists-with-pagination)
@@ -195,6 +196,28 @@ if (Object.keys(errors).length === 0) {
 - `validateForm(schema, values)` (`utils/validationUtils.js`) returns the first message per field. It is async, so schemas may use async tests.
 - The schemas mirror the server's rules for quick feedback only: the **server still validates every request** and stays the authority. When the server's rules change, update the matching client schema.
 - Each schema has a unit test in `tests/unit/validations/`.
+
+## Languages
+
+English and Arabic (right to left), switched with the globe button next to the theme toggle (sidebar footer, auth pages). The choice is remembered (`localStorage`); without one the browser's language decides, otherwise English. The server answers in the same language (contract: `../CLAUDE.md`, "Languages").
+
+| Piece | Where |
+|---|---|
+| Texts | `src/locales/en.json`, `ar.json`: the same keys, grouped by feature. English is bundled; Arabic (2.6 KB) downloads the first time it is used |
+| Translating | `const { t } = useLanguage(); t('dashboard.welcome', { name })`; outside React: `import { t } from '@/lib/i18n'` |
+| Counts | a text with plural forms (`{ "one": "...", "other": "..." }`, Arabic also `zero`, `two`, `few`, `many`): `t('key', { count })` picks the form |
+| Dates, numbers | `formatDate(date)`, `formatNumber(n)` from `useLanguage()`; Arabic writes Arabic-Indic digits (٠-٩), also inside its texts and in the server's messages (`locale` in `lib/i18n.js` and the server's `i18n.util.js`) |
+| Direction | `<html lang dir>`, set before the first paint by `index.html`, then by `LanguageProvider`; Ant Design follows through `UiProvider direction` |
+| ui kit words | passed translated to `UiProvider texts` in `App.jsx` (the kit itself knows no languages) |
+| Font | Inter for Latin letters, Noto Sans Arabic for Arabic ones; the Arabic font downloads only when Arabic text is shown |
+| Requests | `Accept-Language` on every request (`lib/axiosInstance.js`) |
+
+**Rules**
+
+1. **No visible text in code:** labels, `aria-label`s, placeholders, toasts, validation messages (schemas hold keys; forms show `t(errors.field)`, so errors change language with the page). A missing key shows the key itself, and the parity test (`tests/unit/lib/i18n.test.js`) fails until both files have it.
+2. **Right to left:** logical CSS properties only (`margin-inline-start`, `inset-inline-end`, `text-align: start`). What has no logical form gets a `:global([dir='rtl'])` rule: `translateX` (the phone drawer), `background-position` (the select arrow), icons that point a way (pagination arrows, log out).
+3. **Check new pages in Arabic:** `e2e/a11y.spec.js` runs every page in both languages (`ar` headings in `PAGES`); `e2e/visual.spec.js` has Arabic screenshots of the main layouts. `useLanguage(page, 'ar')` from `e2e/fixtures.js` opens a test in Arabic.
+4. **A new language:** `src/locales/<code>.json`, its entry in `LANGUAGES` (`lib/i18n.js`) and in `index.html`, the server's (`../CLAUDE.md`), and its pages in the E2E specs.
 
 ## Pages, routes and roles
 
@@ -509,6 +532,7 @@ npx playwright show-report                   # the HTML report of the last run
 | `auth.spec.js` | logging in (right, wrong, empty), returning to the page asked for, the session surviving a reload, logging out, "log out of all devices" ending another device's session |
 | `access.spec.js` | visitors sent to login, the 404 page, each role's pages and details, sidebar navigation and the phone menu drawer |
 | `users.spec.js` | the admin users list: pages, search (also after a reload), no matches; other roles without access |
+| `language.spec.js` | switching to Arabic: texts, direction, a server message in Arabic, the choice remembered after a reload; the sidebar on the right; switching back |
 | `password-input.spec.js` | the show / hide password button on login and reset password, pressed like a person does (held, at its top, middle and bottom, alternating between fields) |
 | `password-reset.spec.js` | forgot password end to end: the email the server wrote, its link, the new password logging in and the old one refused, the link working only once; an unknown email; a link without a token |
 | `profile.spec.js` | editing the profile: saving and seeing the change everywhere (also after a reload), an email of another account refused, invalid values |

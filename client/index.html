@@ -16,6 +16,22 @@
         var dark = preference === 'dark' || (preference !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
         document.documentElement.dataset.theme = dark ? 'dark' : 'light';
       })();
+      // The language and text direction, also before the first paint (same steps as src/lib/i18n.js)
+      (function () {
+        var directions = { en: 'ltr', ar: 'rtl' };
+        var language = null;
+        try { language = localStorage.getItem('language'); } catch (e) {}
+        if (!directions[language]) {
+          var browser = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
+          language = 'en';
+          for (var i = 0; i < browser.length; i++) {
+            var code = String(browser[i] || '').split('-')[0].toLowerCase();
+            if (directions[code]) { language = code; break; }
+          }
+        }
+        document.documentElement.lang = language;
+        document.documentElement.dir = directions[language];
+      })();
     </script>
   </head>
   <body>

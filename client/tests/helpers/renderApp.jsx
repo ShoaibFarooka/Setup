@@ -6,6 +6,7 @@ import { http } from 'msw';
 import App from '@/App';
 import AuthProvider from '@/contexts/AuthProvider';
 import ThemeProvider from '@/contexts/ThemeProvider';
+import LanguageProvider from '@/contexts/LanguageProvider';
 import { createQueryClient } from '@/lib/queryClient';
 import { server } from '../mocks/server';
 import { API, success } from '../mocks/responses';
@@ -27,13 +28,15 @@ export const renderApp = ({ route = '/' } = {}) => {
 
     render(
         <ThemeProvider>
-            <QueryClientProvider client={queryClient}>
-                <AuthProvider>
-                    <MemoryRouter initialEntries={[route]}>
-                        <App />
-                    </MemoryRouter>
-                </AuthProvider>
-            </QueryClientProvider>
+            <LanguageProvider>
+                <QueryClientProvider client={queryClient}>
+                    <AuthProvider>
+                        <MemoryRouter initialEntries={[route]}>
+                            <App />
+                        </MemoryRouter>
+                    </AuthProvider>
+                </QueryClientProvider>
+            </LanguageProvider>
         </ThemeProvider>,
     );
 

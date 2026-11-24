@@ -56,7 +56,7 @@ describe('email.service sendEmail', () => {
             to: 'ada@example.com',
             subject: 'Reset your password',
             template: 'reset-password',
-            data: { name: 'Ada', resetUrl: 'http://localhost:5200/reset-password?token=abc', expiresInMinutes: 30 },
+            data: { name: 'Ada', resetUrl: 'http://localhost:5200/reset-password?token=abc', minutes: 30 },
             bcc: 'audit@example.com',
         });
 
@@ -77,7 +77,7 @@ describe('email.service sendEmail', () => {
             to: 'ada@example.com',
             subject: 'Reset your password',
             template: 'reset-password',
-            data: { name: 'Ada', resetUrl: 'http://x', expiresInMinutes: 30 },
+            data: { name: 'Ada', resetUrl: 'http://x', minutes: 30 },
             attachments: [invoice],
         });
 
@@ -105,7 +105,7 @@ describe('email.service sendEmail', () => {
         transporter.sendMail.mockRejectedValue(new Error('SMTP down'));
 
         await expect(sendEmail('to@example.com', 'Hello', 'Text'))
-            .rejects.toMatchObject({ message: 'Unable to send email!', statusCode: 500 });
+            .rejects.toMatchObject({ message: 'email.sendFailed', statusCode: 500 });
         expect(logger.error).toHaveBeenCalledWith({ err: expect.any(Error) }, 'Error sending email');
     });
 });

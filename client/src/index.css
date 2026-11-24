@@ -5,6 +5,11 @@
 @import '@fontsource/inter/500.css';
 @import '@fontsource/inter/600.css';
 @import '@fontsource/inter/700.css';
+/* Arabic letters (Inter has none): only the Arabic subset, which browsers download only when Arabic text is shown */
+@import '@fontsource/noto-sans-arabic/arabic-400.css';
+@import '@fontsource/noto-sans-arabic/arabic-500.css';
+@import '@fontsource/noto-sans-arabic/arabic-600.css';
+@import '@fontsource/noto-sans-arabic/arabic-700.css';
 
 @import './styles/base.css';
 @import './styles/theme.css';

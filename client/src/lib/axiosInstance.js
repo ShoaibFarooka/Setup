@@ -2,6 +2,7 @@ import axios from 'axios';
 import { appConfig } from '@/config/appConfig';
 import { session } from './session';
 import { toApiError } from './apiError';
+import { getLanguage } from './i18n';
 
 // Request options used by the services:
 //   skipAuth: send no access token (login, refresh)
@@ -13,6 +14,8 @@ const client = axios.create({
 });
 
 client.interceptors.request.use((request) => {
+    // The server answers in this language (its messages, and emails it sends because of this request)
+    request.headers['Accept-Language'] = getLanguage();
     const { accessToken } = session.getState();
     if (accessToken && !request.skipAuth) {
         request.headers.Authorization = `Bearer ${accessToken}`;

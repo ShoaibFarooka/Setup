@@ -91,12 +91,24 @@
     }
 }
 
+/* Two rows: the language and theme buttons at the end edge, then the user card at full width (room for the name) */
 .footer {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: var(--space-2);
     width: calc(100% - var(--space-6));
     margin-top: auto;
+}
+
+.footerActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-1);
+}
+
+/* Icons that point a way (the log-out arrow) point the other way in right-to-left languages */
+:global([dir='rtl']) .directionalIcon {
+    transform: scaleX(-1);
 }
 
 .userCard {
@@ -157,6 +169,11 @@
     .closed {
         transform: translateX(-100%);
         visibility: hidden;
+    }
+
+    /* Right-to-left: the sidebar sits on the right, so it slides out to the right */
+    :global([dir='rtl']) .closed {
+        transform: translateX(100%);
     }
 
     .open {

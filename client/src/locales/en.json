@@ -1,0 +1,163 @@
+{
+    "nav": {
+        "dashboard": "Dashboard",
+        "profile": "Profile",
+        "users": "Users",
+        "logout": "Log out",
+        "openMenu": "Open menu",
+        "closeMenu": "Close menu",
+        "skipToContent": "Skip to content"
+    },
+    "roles": {
+        "admin": "Admin",
+        "user": "User"
+    },
+    "theme": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System",
+        "toggle": "Theme: {current}. Switch to {next}"
+    },
+    "language": {
+        "menu": "Language: {current}. Choose a language"
+    },
+    "auth": {
+        "welcome": "Welcome back",
+        "welcomeText": "Sign in to continue to your account.",
+        "backToLogin": "Back to log in",
+        "login": {
+            "title": "Log into your Account",
+            "description": "Enter your credentials to continue",
+            "identifier": "Email or Username",
+            "identifierPlaceholder": "name@example.com or username",
+            "password": "Password",
+            "passwordPlaceholder": "Enter your password",
+            "forgot": "Forgot password?",
+            "submit": "Log In"
+        },
+        "forgot": {
+            "headline": "Forgot your password?",
+            "headlineText": "It happens. We will email you a link to choose a new one.",
+            "title": "Reset your password",
+            "description": "Enter the email address of your account",
+            "email": "Email",
+            "emailPlaceholder": "name@example.com",
+            "submit": "Send reset link",
+            "sentTitle": "Check your email",
+            "sentText": "If an account exists for {email}, we have sent a link to reset the password. Nothing arrived? Check the spam folder, or try again in a few minutes."
+        },
+        "reset": {
+            "headline": "Choose a new password",
+            "headlineText": "Pick one you do not use anywhere else.",
+            "title": "Set a new password",
+            "description": "Type it twice to be sure it is right",
+            "incompleteTitle": "This link is incomplete",
+            "incompleteText": "Open the link from the email again, or ask for a new one.",
+            "newPassword": "New password",
+            "newPasswordHint": "At least 8 characters, with a letter and a number",
+            "repeatPassword": "Repeat new password",
+            "submit": "Change password",
+            "failedTitle": "The password was not changed",
+            "requestNewLink": "Request a new link",
+            "changed": "Password changed. Log in with the new password."
+        }
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "welcome": "Welcome, {name}",
+        "placeholder": "This is a placeholder page. Build your app's home page here."
+    },
+    "profile": {
+        "title": "Profile",
+        "subtitle": "Your account details",
+        "account": "Account",
+        "name": "Name",
+        "username": "Username",
+        "email": "Email",
+        "role": "Role",
+        "edit": "Edit",
+        "editTitle": "Edit profile",
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "updated": "Profile updated",
+        "sessionsTitle": "Sessions",
+        "sessionsText": "Logged in somewhere you no longer use, or lost a device? End every session.",
+        "logoutAll": "Log out of all devices",
+        "logoutAllTitle": "Log out of all devices?",
+        "logoutAllText": "You will be logged out everywhere, including this device. Other devices are logged out within a few minutes.",
+        "logoutAllConfirm": "Log out everywhere"
+    },
+    "users": {
+        "title": "Users",
+        "subtitle": "Everyone who can log in",
+        "search": "Search users",
+        "searchPlaceholder": "Search by name, username or email",
+        "sort": "Sort users",
+        "sortNewest": "Newest first",
+        "sortOldest": "Oldest first",
+        "sortNameAsc": "Name A–Z",
+        "sortNameDesc": "Name Z–A",
+        "name": "Name",
+        "username": "Username",
+        "email": "Email",
+        "role": "Role",
+        "joined": "Joined",
+        "table": "Users",
+        "loadFailed": "The users could not be loaded",
+        "tryAgain": "Try again",
+        "noMatch": "No users match \"{search}\"",
+        "empty": "No users yet"
+    },
+    "connection": {
+        "databaseTitle": "Cannot reach the database",
+        "databaseText": "The server is running but cannot reach its database. Please try again in a moment.",
+        "serverTitle": "Cannot connect to the server",
+        "serverText": "Your account could not be loaded. Make sure the server is running, then try again.",
+        "tryAgain": "Try again",
+        "backToLogin": "Back to login"
+    },
+    "errors": {
+        "generic": "Something went wrong!",
+        "network": "Unable to reach the server. Please check your connection and try again.",
+        "crashTitle": "Something went wrong",
+        "crashText": "This page could not be displayed. Reloading usually fixes it.",
+        "reload": "Reload page",
+        "notFoundTitle": "Page not found",
+        "notFoundText": "Sorry, the page you visited does not exist.",
+        "backHome": "Back Home",
+        "accessDeniedTitle": "Access denied",
+        "accessDeniedText": "You don't have permission to open this page."
+    },
+    "validation": {
+        "identifierRequired": "Email or username is required!",
+        "identifierTooLong": "Email or username is too long!",
+        "passwordRequired": "Password is required!",
+        "passwordMin": "Password must be at least 8 characters!",
+        "passwordMax": "Password must be at most 72 characters!",
+        "passwordLetter": "Password must contain a letter!",
+        "passwordNumber": "Password must contain a number!",
+        "repeatRequired": "Repeat the new password!",
+        "passwordsMismatch": "The passwords do not match!",
+        "emailRequired": "Email is required!",
+        "emailTooLong": "Email is too long!",
+        "emailInvalid": "Enter a valid email address!",
+        "nameRequired": "Name is required!",
+        "nameMin": "Name must be at least 2 characters!",
+        "nameMax": "Name must be at most 60 characters!"
+    },
+    "ui": {
+        "loading": "Loading",
+        "confirm": "Confirm",
+        "cancel": "Cancel",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "emptyTable": "Nothing here yet",
+        "pagination": {
+            "label": "Pagination",
+            "summary": "Showing {count} / {total} (Page {page} of {pages})",
+            "previous": "Previous page",
+            "next": "Next page",
+            "page": "Page {page}"
+        }
+    }
+}

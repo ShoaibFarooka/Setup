@@ -23,15 +23,21 @@ export const test = base.extend({
         });
     },
 
-    // openMenu(): on phones the sidebar is a drawer; this opens it (and does nothing on desktop)
+    // openMenu(): on phones the sidebar is a drawer; this opens it (and does nothing on desktop), in any language
     openMenu: async ({ page, isMobile }, use) => {
         await use(async () => {
             if (isMobile) {
-                await page.getByRole('button', { name: 'Open menu' }).click();
+                await page.getByRole('button', { name: /^(Open menu|فتح القائمة)$/ }).click();
             }
         });
     },
 });
+
+// Opens every page of this test in a language, as if the user had chosen it before (saved choice).
+// Call before the first page.goto().
+export const useLanguage = (page, language) => page.addInitScript((code) => {
+    localStorage.setItem('language', code);
+}, language);
 
 // Waits until the page is ready to be looked at: its heading is there and the web font has loaded
 export const pageReady = async (page, heading) => {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import form from '@/styles/authForm.module.css';
 import AuthContainer from '@/components/layout/AuthContainer/AuthContainer';
 import useForgotPassword from '@/hooks/useForgotPassword';
+import useLanguage from '@/hooks/useLanguage';
 import { Alert, Button, FormField, Input, TextLink } from '@/components/ui';
 import { forgotPasswordSchema } from '@/validations/authValidations';
 import { validateForm } from '@/utils/validationUtils';
@@ -12,6 +13,7 @@ const ForgotPassword = () => {
     const [email, setEmail] = useState('');
     const [errors, setErrors] = useState({});
     const forgotPassword = useForgotPassword();
+    const { t } = useLanguage();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -23,25 +25,25 @@ const ForgotPassword = () => {
     };
 
     return (
-        <AuthContainer headline="Forgot your password?" subHeadline="It happens. We will email you a link to choose a new one.">
+        <AuthContainer headline={t('auth.forgot.headline')} subHeadline={t('auth.forgot.headlineText')}>
             <form className={form.form} onSubmit={handleSubmit} noValidate>
-                <h1 className={form.title}>Reset your password</h1>
-                <p className={form.description}>Enter the email address of your account</p>
+                <h1 className={form.title}>{t('auth.forgot.title')}</h1>
+                <p className={form.description}>{t('auth.forgot.description')}</p>
 
                 {forgotPassword.isSuccess ? (
-                    <Alert tone="success" title="Check your email" className={form.alert}>
-                        If an account exists for {email.trim()}, we have sent a link to reset the password. Nothing arrived? Check the spam folder, or try again in a few minutes.
+                    <Alert tone="success" title={t('auth.forgot.sentTitle')} className={form.alert}>
+                        {t('auth.forgot.sentText', { email: email.trim() })}
                     </Alert>
                 ) : (
                     <>
                         <div className={form.fields}>
-                            <FormField label="Email" error={errors.email}>
+                            <FormField label={t('auth.forgot.email')} error={errors.email && t(errors.email)}>
                                 <Input
                                     name="email"
                                     type="email"
                                     autoFocus
                                     autoComplete="email"
-                                    placeholder="name@example.com"
+                                    placeholder={t('auth.forgot.emailPlaceholder')}
                                     size="lg"
                                     value={email}
                                     onChange={(event) => setEmail(event.target.value)}
@@ -49,13 +51,13 @@ const ForgotPassword = () => {
                             </FormField>
                         </div>
                         <Button type="submit" size="lg" fullWidth loading={forgotPassword.isPending} className={form.submit}>
-                            Send reset link
+                            {t('auth.forgot.submit')}
                         </Button>
                     </>
                 )}
 
                 <p className={form.footer}>
-                    <TextLink to="/login">Back to log in</TextLink>
+                    <TextLink to="/login">{t('auth.backToLogin')}</TextLink>
                 </p>
             </form>
         </AuthContainer>

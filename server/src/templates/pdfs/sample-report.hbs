@@ -1,15 +1,15 @@
-{{!-- An example PDF (copy it for a real one, then delete it): renderPdf('sample-report', { title, generatedAt, rows }) --}}
+{{!-- An example PDF (copy it for a real one, then delete it): renderPdf('sample-report', { title, date, rows, lang }) --}}
 <h1>{{title}}</h1>
-<p class="meta">Generated {{generatedAt}}</p>
+<p class="meta">{{t "pdf.sampleReport.generated"}}</p>
 <table>
     <thead>
-        <tr><th>Name</th><th>Email</th></tr>
+        <tr><th>{{t "pdf.sampleReport.name"}}</th><th>{{t "pdf.sampleReport.email"}}</th></tr>
     </thead>
     <tbody>
         {{#each rows}}
             <tr><td>{{name}}</td><td>{{email}}</td></tr>
         {{else}}
-            <tr><td colspan="2">Nothing to show</td></tr>
+            <tr><td colspan="2">{{t "pdf.sampleReport.empty"}}</td></tr>
         {{/each}}
     </tbody>
 </table>

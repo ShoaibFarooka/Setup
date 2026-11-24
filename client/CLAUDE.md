@@ -51,9 +51,16 @@ Unit tests run in jsdom: no layout, no media queries, no real server. They canno
 - Heavy parts (charts, editors, maps) behind `lazy()` too; images with `loading="lazy"`, width and height, a fitting size and a modern format; long lists paged or virtualized; no `memo` / `useMemo` / `useCallback` without a measured reason; independent queries in parallel.
 - Never `dangerouslySetInnerHTML` (ask first; sanitize with DOMPurify if unavoidable); external links `rel="noopener noreferrer"`; never log tokens or personal data; redirects only to paths inside the app; no secrets in client code or `VITE_` variables.
 
+## Languages (details in README "Languages")
+
+- Every visible text, label, `aria-label`, placeholder and toast comes from `src/locales/en.json` **and** `ar.json` (same keys; `tests/unit/lib/i18n.test.js` fails when one is missing): `const { t } = useLanguage(); t('users.title')`, outside React `t` from `@/lib/i18n`. Never write visible English in a component.
+- Dates and numbers through `formatDate` / `formatNumber` from `useLanguage()` (never `toLocaleString()` without the locale).
+- ui components stay language-free: their own words come from `UiProvider texts` (`App.jsx`); a new one adds its text there and in `uiTexts.js`.
+- Right to left: only logical CSS properties; what has no logical form (`translateX`, `background-position`, icons that point a way) gets a `:global([dir='rtl'])` rule. A new page is checked in Arabic too (a11y, and screenshots for a new layout).
+
 ## Forms
 
-- Validation rules live in Yup schemas in `validations/<feature>Validations.js`, never inline in components. Forms check them with `validateForm(schema, values)` (`utils/validationUtils.js`) before calling the mutation.
+- Validation rules live in Yup schemas in `validations/<feature>Validations.js`, never inline in components. Their messages are keys (`'validation.emailRequired'`): keep the errors in state and show them with `t(errors.email)`. Forms check them with `validateForm(schema, values)` (`utils/validationUtils.js`) before calling the mutation.
 - The schemas mirror the server's rules for quick feedback; the server stays the authority. When a server rule changes, update the matching schema and its test in `tests/unit/validations/`.
 
 ## Auth and routes

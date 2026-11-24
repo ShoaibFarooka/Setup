@@ -18,7 +18,7 @@ describe('auth.middleware authenticateRequest', () => {
 
         authenticateRequest({ headers: {} }, {}, next);
 
-        expectAppError(next, 401, 'Invalid or missing token!');
+        expectAppError(next, 401, 'auth.tokenMissing');
     });
 
     test('invalid token -> 401', () => {
@@ -26,7 +26,7 @@ describe('auth.middleware authenticateRequest', () => {
 
         authenticateRequest({ headers: { authorization: 'Bearer invalid' } }, {}, next);
 
-        expectAppError(next, 401, 'Invalid or missing token!');
+        expectAppError(next, 401, 'auth.tokenMissing');
     });
 
     test('a refresh token is not accepted as an access token', () => {
@@ -35,7 +35,7 @@ describe('auth.middleware authenticateRequest', () => {
 
         authenticateRequest({ headers: { authorization: `Bearer ${token}` } }, {}, next);
 
-        expectAppError(next, 401, 'Invalid or missing token!');
+        expectAppError(next, 401, 'auth.tokenMissing');
     });
 
     test('valid token -> sets req.user and calls next without an error', () => {
@@ -70,7 +70,7 @@ describe('auth.middleware verifyRole', () => {
 
         await verifyRole(['admin'])({ user: { id: '1' } }, {}, next);
 
-        expectAppError(next, 403, 'Insufficient role');
+        expectAppError(next, 403, 'auth.insufficientRole');
     });
 
     test('user no longer exists -> 404', async () => {
@@ -79,7 +79,7 @@ describe('auth.middleware verifyRole', () => {
 
         await verifyRole(['admin'])({ user: { id: '1' } }, {}, next);
 
-        expectAppError(next, 404, 'User not found');
+        expectAppError(next, 404, 'auth.userNotFound');
     });
 
     test('database error -> passed to next as is', async () => {

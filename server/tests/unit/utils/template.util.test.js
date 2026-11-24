@@ -16,7 +16,7 @@ describe('template.util logo', () => {
     });
 
     test('the email and PDF layouts show the logo with the app name beside it', () => {
-        const data = { appName: 'My App', logoSrc: 'cid:logo', name: 'Ada', resetUrl: 'http://x', expiresInMinutes: 30 };
+        const data = { appName: 'My App', logoSrc: 'cid:logo', name: 'Ada', resetUrl: 'http://x', minutes: 30 };
 
         const email = renderTemplate('emails/reset-password', data, { layout: 'layouts/email' });
         const pdf = renderTemplate('pdfs/sample-report', { ...data, title: 'Users', rows: [] }, { layout: 'layouts/pdf' });
@@ -29,7 +29,7 @@ describe('template.util logo', () => {
     });
 });
 
-const resetData = { appName: 'My App', name: 'Ada', resetUrl: 'http://localhost:5200/reset-password?token=abc', expiresInMinutes: 30 };
+const resetData = { appName: 'My App', name: 'Ada', resetUrl: 'http://localhost:5200/reset-password?token=abc', minutes: 30 };
 
 describe('template.util renderTemplate', () => {
     test('renders a template with its data', () => {
@@ -82,5 +82,35 @@ describe('template.util renderTemplate', () => {
     test('templateExists tells whether a template file is there', () => {
         expect(templateExists('emails/reset-password')).toBe(true);
         expect(templateExists('emails/nope')).toBe(false);
+    });
+});
+
+describe('template.util languages', () => {
+    const data = { appName: 'My App', logoSrc: 'cid:logo', name: 'Ada', resetUrl: 'http://x', minutes: 30 };
+
+    test('{{t}} writes texts in the template\'s lang, filling placeholders from its data', () => {
+        const english = renderTemplate('emails/reset-password.text', data);
+        const arabic = renderTemplate('emails/reset-password.text', { ...data, lang: 'ar' });
+
+        expect(english).toContain('Hi Ada,');
+        expect(english).toContain('works for 30 minutes');
+        expect(arabic).toContain('مرحبًا Ada،');
+        expect(arabic).toContain('لمدة ٣٠ دقيقة');
+    });
+
+    test('layouts get lang and dir; right-to-left puts the logo\'s gap on its left', () => {
+        const english = renderTemplate('emails/reset-password', data, { layout: 'layouts/email' });
+        const arabic = renderTemplate('emails/reset-password', { ...data, lang: 'ar' }, { layout: 'layouts/email' });
+
+        expect(english).toContain('<html lang="en" dir="ltr">');
+        expect(english).toContain('padding:0 12px 0 0;');
+        expect(arabic).toContain('<html lang="ar" dir="rtl">');
+        expect(arabic).toContain('padding:0 0 0 12px;');
+    });
+
+    test('{{t}} output is escaped in HTML templates', () => {
+        const html = renderTemplate('emails/reset-password', { ...data, name: '<b>Ada</b>' });
+
+        expect(html).toContain('Hi &lt;b&gt;Ada&lt;/b&gt;,');
     });
 });

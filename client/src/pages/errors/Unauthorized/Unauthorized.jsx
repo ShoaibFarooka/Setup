@@ -1,14 +1,17 @@
 import { FiLock } from 'react-icons/fi';
 import { EmptyState } from '@/components/ui';
+import useLanguage from '@/hooks/useLanguage';
 
 const Unauthorized = () => {
+    const { t } = useLanguage();
+
     return (
         <EmptyState
             icon={<FiLock />}
             tone="danger"
-            title="Access denied"
+            title={t('errors.accessDeniedTitle')}
             titleAs="h1"
-            description="You don't have permission to open this page."
+            description={t('errors.accessDeniedText')}
         />
     );
 };

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import form from '@/styles/authForm.module.css';
 import AuthContainer from '@/components/layout/AuthContainer/AuthContainer';
 import useResetPassword from '@/hooks/useResetPassword';
+import useLanguage from '@/hooks/useLanguage';
 import { Alert, Button, FormField, PasswordInput, TextLink, toast } from '@/components/ui';
 import { resetPasswordSchema } from '@/validations/authValidations';
 import { validateForm } from '@/utils/validationUtils';
@@ -17,6 +18,7 @@ const ResetPassword = () => {
     const [values, setValues] = useState({ password: '', confirmPassword: '' });
     const [errors, setErrors] = useState({});
     const resetPassword = useResetPassword();
+    const { t } = useLanguage();
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -30,35 +32,36 @@ const ResetPassword = () => {
         if (Object.keys(newErrors).length === 0) {
             resetPassword.mutate({ token, password: values.password }, {
                 onSuccess: () => {
-                    toast.success('Password changed. Log in with the new password.');
+                    toast.success(t('auth.reset.changed'));
                     navigate('/login', { replace: true });
                 },
             });
         }
     };
 
-    const requestNewLink = <TextLink to="/forgot-password">Request a new link</TextLink>;
+    const requestNewLink = <TextLink to="/forgot-password">{t('auth.reset.requestNewLink')}</TextLink>;
 
     return (
-        <AuthContainer headline="Choose a new password" subHeadline="Pick one you do not use anywhere else.">
+        <AuthContainer headline={t('auth.reset.headline')} subHeadline={t('auth.reset.headlineText')}>
             <form className={form.form} onSubmit={handleSubmit} noValidate>
-                <h1 className={form.title}>Set a new password</h1>
-                <p className={form.description}>Type it twice to be sure it is right</p>
+                <h1 className={form.title}>{t('auth.reset.title')}</h1>
+                <p className={form.description}>{t('auth.reset.description')}</p>
 
                 {!token ? (
-                    <Alert tone="danger" title="This link is incomplete" className={form.alert}>
-                        Open the link from the email again, or {requestNewLink}.
+                    <Alert tone="danger" title={t('auth.reset.incompleteTitle')} className={form.alert}>
+                        <p>{t('auth.reset.incompleteText')}</p>
+                        <p>{requestNewLink}</p>
                     </Alert>
                 ) : (
                     <>
                         {resetPassword.isError && (
-                            <Alert tone="danger" title="The password was not changed" className={form.alert}>
+                            <Alert tone="danger" title={t('auth.reset.failedTitle')} className={form.alert}>
                                 <p>{getErrorMessage(resetPassword.error)}</p>
                                 <p>{requestNewLink}</p>
                             </Alert>
                         )}
                         <div className={form.fields}>
-                            <FormField label="New password" hint="At least 8 characters, with a letter and a number" error={errors.password}>
+                            <FormField label={t('auth.reset.newPassword')} hint={t('auth.reset.newPasswordHint')} error={errors.password && t(errors.password)}>
                                 <PasswordInput
                                     name="password"
                                     autoFocus
@@ -68,7 +71,7 @@ const ResetPassword = () => {
                                     onChange={handleChange}
                                 />
                             </FormField>
-                            <FormField label="Repeat new password" error={errors.confirmPassword}>
+                            <FormField label={t('auth.reset.repeatPassword')} error={errors.confirmPassword && t(errors.confirmPassword)}>
                                 <PasswordInput
                                     name="confirmPassword"
                                     autoComplete="new-password"
@@ -79,13 +82,13 @@ const ResetPassword = () => {
                             </FormField>
                         </div>
                         <Button type="submit" size="lg" fullWidth loading={resetPassword.isPending} className={form.submit}>
-                            Change password
+                            {t('auth.reset.submit')}
                         </Button>
                     </>
                 )}
 
                 <p className={form.footer}>
-                    <TextLink to="/login">Back to log in</TextLink>
+                    <TextLink to="/login">{t('auth.backToLogin')}</TextLink>
                 </p>
             </form>
         </AuthContainer>

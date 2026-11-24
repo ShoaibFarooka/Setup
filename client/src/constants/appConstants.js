@@ -5,5 +5,4 @@ export const APP_NAME = 'My App';
 export const ROLES = { admin: 'admin', user: 'user' };
 export const ALL_ROLES = Object.values(ROLES);
 
-// How each server role is shown to people
-export const ROLE_LABELS = { [ROLES.admin]: 'Admin', [ROLES.user]: 'User' };
+// How each role is shown to people: roles.<role> in src/locales/*.json

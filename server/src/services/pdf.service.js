@@ -45,8 +45,9 @@ const htmlToPdf = async (html, options = {}) => {
 };
 
 // Renders src/templates/pdfs/<template>.hbs inside layouts/pdf.hbs and prints it; every template gets `appName`
-// and `logoSrc` (the logo as a data: URL: the renderer loads no files).
-// renderPdf('sample-report', { title, rows }) -> Buffer. Send it with
+// and `logoSrc` (the logo as a data: URL: the renderer loads no files). data.lang: the PDF's language (texts and
+// direction), e.g. req.language; English by default.
+// renderPdf('sample-report', { title, rows, lang: req.language }) -> Buffer. Send it with
 // res.type('application/pdf').attachment('report.pdf').send(buffer).
 const renderPdf = async (template, data = {}, options = {}) => {
     const values = { appName: config.appName, logoSrc: getLogoDataUri(), ...data };

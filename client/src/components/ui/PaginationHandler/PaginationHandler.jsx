@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import styles from './PaginationHandler.module.css';
 import { FiChevronLeft as ArrowLeft, FiChevronRight as ArrowRight } from 'react-icons/fi';
+import { useUiTexts } from '../UiProvider/uiTexts';
 
 const SHOW_PAGES = 2; // pages shown on each side of the current one
 
@@ -26,21 +27,24 @@ const getPageItems = (pageIndex, totalPages) => {
 
 // Page navigation for lists: a summary plus previous / page numbers / next. Pages start at 1.
 // count: items on this page, totalCount: items in all pages; handlePageChange(page) is called with the page to open.
+// The arrows point the reading direction (mirrored for right-to-left languages).
 const PaginationHandler = ({ count, totalCount, pageIndex, totalPages, handlePageChange }) => {
+    const { pagination: texts, formatNumber } = useUiTexts();
+
     return (
-        <nav className={styles.pagination} aria-label="Pagination">
+        <nav className={styles.pagination} aria-label={texts.label}>
             <div className={styles.summary}>
-                Showing {count} / {totalCount} (Page {pageIndex} of {totalPages})
+                {texts.summary({ count, total: totalCount, page: pageIndex, pages: totalPages })}
             </div>
             <div className={styles.pages}>
                 <button
                     type="button"
                     className={styles.pageButton}
-                    aria-label="Previous page"
+                    aria-label={texts.previous}
                     disabled={pageIndex <= 1}
                     onClick={() => handlePageChange(pageIndex - 1)}
                 >
-                    <ArrowLeft />
+                    <ArrowLeft className={styles.arrow} />
                 </button>
 
                 {getPageItems(pageIndex, totalPages).map((item) => (
@@ -51,11 +55,11 @@ const PaginationHandler = ({ count, totalCount, pageIndex, totalPages, handlePag
                             key={item}
                             type="button"
                             className={clsx(styles.pageButton, item === pageIndex && styles.current)}
-                            aria-label={`Page ${item}`}
+                            aria-label={texts.page(item)}
                             aria-current={item === pageIndex ? 'page' : undefined}
                             onClick={() => item !== pageIndex && handlePageChange(item)}
                         >
-                            {item}
+                            {formatNumber(item)}
                         </button>
                     )
                 ))}
@@ -63,11 +67,11 @@ const PaginationHandler = ({ count, totalCount, pageIndex, totalPages, handlePag
                 <button
                     type="button"
                     className={styles.pageButton}
-                    aria-label="Next page"
+                    aria-label={texts.next}
                     disabled={pageIndex >= totalPages}
                     onClick={() => handlePageChange(pageIndex + 1)}
                 >
-                    <ArrowRight />
+                    <ArrowRight className={styles.arrow} />
                 </button>
             </div>
         </nav>

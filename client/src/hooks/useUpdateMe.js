@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '@/services/userService';
 import { queryKeys } from './queryKeys';
 import { toast } from '@/components/ui';
+import { t } from '@/lib/i18n';
 
 // updateMe.mutate({ name, email }): saves the logged-in user's own details.
 // The server answers with the updated user, so it goes straight into the cache: every component showing the user
@@ -15,7 +16,7 @@ const useUpdateMe = () => {
         mutationFn: userService.updateMe,
         onSuccess: (user) => {
             queryClient.setQueryData(queryKeys.users.me, user);
-            toast.success('Profile updated');
+            toast.success(t('profile.updated'));
         },
     });
 };

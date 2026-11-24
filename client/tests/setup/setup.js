@@ -3,6 +3,7 @@ import { cleanup, configure } from '@testing-library/react';
 import { message, Modal } from 'antd';
 import { server } from '../mocks/server';
 import { session } from '@/lib/session';
+import { DEFAULT_LANGUAGE, setCurrentLanguage } from '@/lib/i18n';
 
 // Ant Design uses window.matchMedia (responsive layouts), which jsdom does not have
 Object.defineProperty(window, 'matchMedia', {
@@ -41,9 +42,10 @@ afterEach(() => {
     // Closing animations never finish in jsdom, so closed dialogs would stay in the page for the next test
     document.querySelectorAll('.ant-modal-root').forEach((element) => element.remove());
     server.resetHandlers();
-    // Each test starts like a fresh page load: no session, no remembered theme
+    // Each test starts like a fresh page load: no session, no remembered theme or language, English
     session.reset();
     localStorage.clear();
+    setCurrentLanguage(DEFAULT_LANGUAGE);
     delete document.documentElement.dataset.theme;
     document.documentElement.classList.remove('theme-transition');
 });

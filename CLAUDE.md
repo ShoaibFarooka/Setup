@@ -94,6 +94,12 @@ Every server response, success or failure, has the same shape (`server/src/utils
 - The client's fake server (`client/tests/mocks/responses.js`) builds responses with the same shape. If the contract changes, update `server/src/utils/response.util.js`, `client/src/lib/apiError.js`, `client/tests/mocks/responses.js` and both READMEs together.
 - Every response carries `X-Request-Id` (exposed to the browser through CORS); `ApiError.requestId` holds it, so a reported error can be found in the server logs.
 
+## Languages (contract)
+
+- Languages: `en` (default) and `ar` (right to left). The client sends the user's choice as `Accept-Language` on every request; the server answers every `message`, every validation message in `errors` and the emails it sends because of that request in that language, and says which in `Content-Language` (with `Vary: Accept-Language`). Anything else, or no header, is English.
+- Texts live in `src/locales/<code>.json` on each side (the client's for the UI, the server's for its messages, emails and PDFs), with the same keys in every language; a parity test on each side fails when a key or `{placeholder}` is missing. Code uses keys, never visible text.
+- A new language: a `<code>.json` on both sides, an entry in `client/src/lib/i18n.js`, `client/index.html` and `server/src/utils/i18n.util.js`, and E2E pages for it.
+
 ## Auth contract
 
 - `POST /api/auth/login` `{ identifier, password }` → `data: { token, sessionExpiresAt }` + httpOnly `refreshToken` cookie.

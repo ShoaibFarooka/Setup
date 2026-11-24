@@ -11,7 +11,7 @@ const Loader = ({ page = false, content = false }) => {
 
     return (
         <div className={clsx(styles.loader, variant)}>
-            <Spinner size="lg" label="Loading" />
+            <Spinner size="lg" />
         </div>
     );
 };

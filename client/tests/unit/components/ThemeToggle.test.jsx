@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ThemeProvider from '@/contexts/ThemeProvider';
+import LanguageProvider from '@/contexts/LanguageProvider';
 import ThemeToggle from '@/components/ThemeToggle/ThemeToggle';
 import useTheme from '@/hooks/useTheme';
 import { STORAGE_KEY } from '@/lib/theme';
@@ -9,7 +10,7 @@ import { changeSystemTheme, fakeSystemTheme } from '../../helpers/matchMedia';
 const html = document.documentElement;
 
 const renderToggle = () => {
-    render(<ThemeProvider><ThemeToggle /></ThemeProvider>);
+    render(<ThemeProvider><LanguageProvider><ThemeToggle /></LanguageProvider></ThemeProvider>);
     return userEvent.setup();
 };
 

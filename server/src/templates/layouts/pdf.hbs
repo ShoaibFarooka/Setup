@@ -1,7 +1,7 @@
 {{!-- The frame of every PDF. Rendered by headless Chrome (src/services/pdf.service.js), so normal CSS works.
       Nothing is loaded from the network: images and fonts must be inline (data: URLs). --}}
 <!doctype html>
-<html lang="en">
+<html lang="{{lang}}" dir="{{dir}}">
 <head>
     <meta charset="utf-8">
     <title>{{title}}</title>
@@ -10,7 +10,7 @@
         h1 { margin: 0 0 4px; font-size: 22px; }
         .meta { margin: 0 0 24px; color: #5B6478; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 8px; border-bottom: 1px solid #E4E7EE; text-align: left; }
+        th, td { padding: 8px; border-bottom: 1px solid #E4E7EE; text-align: start; }
         th { background-color: #F4F5F9; }
         tr { break-inside: avoid; }
         /* The logo header (partials/logo.hbs) is a table too: without the data tables' borders and width */

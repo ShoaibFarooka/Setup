@@ -1,16 +1,18 @@
 import useMe from '@/hooks/useMe';
 import PageHeader from '@/components/layout/PageHeader/PageHeader';
 import { Card } from '@/components/ui';
+import useLanguage from '@/hooks/useLanguage';
 
 // Placeholder home page after login: replace it with the app's own dashboard
 const Dashboard = () => {
     const { data: user } = useMe();
+    const { t } = useLanguage();
 
     return (
         <>
-            <PageHeader title="Dashboard" subtitle={`Welcome, ${user?.name}`} />
+            <PageHeader title={t('dashboard.title')} subtitle={t('dashboard.welcome', { name: user?.name })} />
             <Card>
-                This is a placeholder page. Build your app&apos;s home page here.
+                {t('dashboard.placeholder')}
             </Card>
         </>
     );

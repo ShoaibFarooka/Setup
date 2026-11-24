@@ -12,7 +12,7 @@ describe('pdf.service', () => {
     test('renderPdf prints a template (in the PDF layout) to a PDF', async () => {
         const pdf = await renderPdf('sample-report', {
             title: 'Users',
-            generatedAt: '24 Nov 2026',
+            date: '24 Nov 2026',
             rows: [{ name: 'Ada', email: 'ada@example.com' }],
         });
 

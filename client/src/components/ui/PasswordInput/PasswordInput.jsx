@@ -4,10 +4,12 @@ import { TbEye, TbEyeOff } from 'react-icons/tb';
 import styles from './PasswordInput.module.css';
 import Input from '../Input/Input';
 import IconButton from '../IconButton/IconButton';
+import { useUiTexts } from '../UiProvider/uiTexts';
 
 // A password input with a show / hide button; same props as Input
 const PasswordInput = ({ size = 'md', className, ...rest }) => {
     const [visible, setVisible] = useState(false);
+    const texts = useUiTexts();
 
     return (
         <div className={styles.wrapper}>
@@ -18,7 +20,7 @@ const PasswordInput = ({ size = 'md', className, ...rest }) => {
                 {...rest}
             />
             <IconButton
-                label={visible ? 'Hide password' : 'Show password'}
+                label={visible ? texts.hidePassword : texts.showPassword}
                 icon={visible ? <TbEyeOff size={18} /> : <TbEye size={18} />}
                 size="sm"
                 className={styles.toggle}

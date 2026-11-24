@@ -43,3 +43,8 @@
 .on .thumb {
     transform: translateX(18px);
 }
+
+/* Right-to-left: the thumb starts on the right and moves left */
+:global([dir='rtl']) .on .thumb {
+    transform: translateX(-18px);
+}

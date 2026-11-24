@@ -21,13 +21,13 @@ const sendSession = (res, message, accessToken, refreshToken) => {
 
 const login = async (req, res) => {
     const { accessToken, refreshToken } = await authService.loginUser(req.body);
-    sendSession(res, 'Logged in successfully', accessToken, refreshToken);
+    sendSession(res, req.t('auth.loggedIn'), accessToken, refreshToken);
 };
 
 const refreshToken = async (req, res) => {
     const token = req.cookies?.refreshToken;
     const { newAccessToken, newRefreshToken } = await authService.refreshToken(token);
-    sendSession(res, 'Session refreshed successfully', newAccessToken, newRefreshToken);
+    sendSession(res, req.t('auth.sessionRefreshed'), newAccessToken, newRefreshToken);
 };
 
 const logout = async (req, res) => {
@@ -36,25 +36,26 @@ const logout = async (req, res) => {
         await authService.logoutUser(token);
     }
     res.clearCookie('refreshToken', refreshTokenCookieOptions());
-    res.status(200).json(successBody('Logged out successfully'));
+    res.status(200).json(successBody(req.t('auth.loggedOut')));
 };
 
 const logoutAll = async (req, res) => {
     await authService.logoutAllDevices(req.user.id);
     res.clearCookie('refreshToken', refreshTokenCookieOptions());
-    res.status(200).json(successBody('Logged out from all devices successfully'));
+    res.status(200).json(successBody(req.t('auth.loggedOutAll')));
 };
 
 // The same answer whether the email belongs to an account or not
 const forgotPassword = async (req, res) => {
-    await authService.requestPasswordReset(req.body.email);
-    res.status(200).json(successBody('If an account exists for that email, we have sent a link to reset the password'));
+    // The email is written in the language of this request
+    await authService.requestPasswordReset(req.body.email, req.language);
+    res.status(200).json(successBody(req.t('auth.resetLinkSent')));
 };
 
 const resetPassword = async (req, res) => {
     await authService.resetPassword(req.body);
     res.clearCookie('refreshToken', refreshTokenCookieOptions());
-    res.status(200).json(successBody('Your password has been changed. Log in with the new password'));
+    res.status(200).json(successBody(req.t('auth.passwordChanged')));
 };
 
 module.exports = {

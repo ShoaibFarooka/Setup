@@ -76,3 +76,8 @@
         justify-content: center;
     }
 }
+
+/* Right-to-left languages read the other way: "previous" points right, "next" points left */
+:global([dir='rtl']) .arrow {
+    transform: scaleX(-1);
+}

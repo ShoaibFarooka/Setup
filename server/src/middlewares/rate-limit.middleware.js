@@ -2,10 +2,13 @@ const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 const config = require('../configs/app.config');
 const { errorBody } = require('../utils/response.util');
 
+// Messages are functions, so each answer is in the request's language
+const limitMessage = (key) => (req) => errorBody(req.t(key));
+
 const apiLimiter = rateLimit({
     windowMs: config.rateLimit.windowMs,
     max: config.rateLimit.max,
-    message: errorBody('Too many requests from this IP, please try again later'),
+    message: limitMessage('errors.tooManyRequests'),
 });
 
 // Stricter limit against password guessing; only failed attempts count
@@ -13,7 +16,7 @@ const loginLimiter = rateLimit({
     windowMs: config.rateLimit.login.windowMs,
     max: config.rateLimit.login.max,
     skipSuccessfulRequests: true,
-    message: errorBody('Too many failed login attempts, please try again later'),
+    message: limitMessage('errors.tooManyLogins'),
 });
 
 // Counted per IP and email address: one person cannot flood someone's inbox with reset emails, and people
@@ -25,7 +28,7 @@ const forgotPasswordLimiter = rateLimit({
         const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
         return `${ipKeyGenerator(req.ip)}|${email}`;
     },
-    message: errorBody('Too many password reset requests, please try again later'),
+    message: limitMessage('errors.tooManyResetRequests'),
 });
 
 // Only failed resets count (an unknown or expired link): against guessing tokens
@@ -33,7 +36,7 @@ const resetPasswordLimiter = rateLimit({
     windowMs: config.rateLimit.resetPassword.windowMs,
     max: config.rateLimit.resetPassword.max,
     skipSuccessfulRequests: true,
-    message: errorBody('Too many failed password reset attempts, please try again later'),
+    message: limitMessage('errors.tooManyResetAttempts'),
 });
 
 module.exports = {

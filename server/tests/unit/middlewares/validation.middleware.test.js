@@ -38,7 +38,7 @@ describe('validation.middleware validateRequest', () => {
         await validateRequest(loginSchema)({ body: {} }, {}, next);
 
         expect(errorPassedTo(next)).toMatchObject({
-            message: 'Request validation failed',
+            message: 'errors.requestValidationFailed',
             errors: {
                 identifier: 'Email or username is required',
                 password: 'Password is required',
@@ -53,7 +53,7 @@ describe('validation.middleware validateRequest', () => {
         await validateRequest(loginSchema)(req, {}, next);
 
         expect(errorPassedTo(next)).toMatchObject({
-            message: 'Unknown fields present in request body',
+            message: 'errors.unknownFieldsBody',
             errors: { unknownFields: ['extra'] },
         });
     });
@@ -82,7 +82,7 @@ describe('validation.middleware validateParams', () => {
 
         await validateParams(idSchema)({ params: { id: 'short' } }, {}, next);
 
-        expect(errorPassedTo(next)).toMatchObject({ message: 'Params validation failed', errors: { id: 'Invalid id' } });
+        expect(errorPassedTo(next)).toMatchObject({ message: 'errors.paramsValidationFailed', errors: { id: 'Invalid id' } });
     });
 
     test('unknown params -> 400', async () => {
@@ -110,7 +110,7 @@ describe('validation.middleware validateQuery', () => {
 
         await validateQuery(pageSchema)({ query: { page: '0' } }, {}, next);
 
-        expect(errorPassedTo(next)).toMatchObject({ message: 'Query validation failed', errors: { page: 'Page must be at least 1' } });
+        expect(errorPassedTo(next)).toMatchObject({ message: 'errors.queryValidationFailed', errors: { page: 'Page must be at least 1' } });
     });
 
     test('unknown query fields -> 400', async () => {
@@ -128,7 +128,7 @@ describe('validation.middleware validate', () => {
 
         await validate(loginSchema)({ body: {} }, {}, next);
 
-        expect(errorPassedTo(next).message).toBe('Request validation failed');
+        expect(errorPassedTo(next).message).toBe('errors.requestValidationFailed');
     });
 });
 
@@ -140,7 +140,7 @@ describe('validation.middleware validateFile', () => {
 
         validateFile({ required: true })({}, {}, next);
 
-        expect(errorPassedTo(next).message).toBe('File upload is mandatory');
+        expect(errorPassedTo(next).message).toBe('errors.fileRequired');
     });
 
     test('optional file missing -> next without an error', () => {
@@ -156,7 +156,7 @@ describe('validation.middleware validateFile', () => {
 
         validateFile({ required: true })({ file: image({ size: 10 * 1024 * 1024 + 1 }) }, {}, next);
 
-        expect(errorPassedTo(next).message).toBe('File size too large');
+        expect(errorPassedTo(next).message).toBe('errors.fileTooLarge');
     });
 
     test('file that is not an image -> 400', () => {
@@ -164,7 +164,7 @@ describe('validation.middleware validateFile', () => {
 
         validateFile({ required: true })({ file: image({ mimetype: 'application/pdf' }) }, {}, next);
 
-        expect(errorPassedTo(next).message).toBe('File type not allowed');
+        expect(errorPassedTo(next).message).toBe('errors.fileTypeNotAllowed');
     });
 
     test('malformed file object -> 400 instead of a crash', () => {
@@ -172,7 +172,7 @@ describe('validation.middleware validateFile', () => {
 
         validateFile({ required: true })({ file: { size: 10 } }, {}, next);
 
-        expect(errorPassedTo(next).message).toBe('File validation failed');
+        expect(errorPassedTo(next).message).toBe('errors.fileValidationFailed');
     });
 
     test('valid image -> next without an error', () => {

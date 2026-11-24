@@ -1,0 +1,5 @@
+/* Keeps the names aligned: the languages that are not chosen get an empty space where the check mark is */
+.noCheck {
+    display: inline-block;
+    width: 1em;
+}

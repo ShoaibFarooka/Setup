@@ -1,11 +1,13 @@
 const { forgotPasswordSchema, resetPasswordSchema, passwordRule } = require('../../../src/validations/auth.validation');
+const { translate } = require('../../../src/utils/i18n.util');
 
 const firstError = async (schema, value) => {
     try {
         await schema.validate(value);
         return null;
     } catch (error) {
-        return error.message;
+        // The schemas give keys; this is the English text people get
+        return translate('en', error.message, error.params);
     }
 };
 

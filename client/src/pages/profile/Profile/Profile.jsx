@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { FiEdit2 } from 'react-icons/fi';
 import styles from './Profile.module.css';
-import { ROLE_LABELS } from '@/constants/appConstants';
 import useMe from '@/hooks/useMe';
 import useLogout from '@/hooks/useLogout';
+import useLanguage from '@/hooks/useLanguage';
 import PageHeader from '@/components/layout/PageHeader/PageHeader';
 import { Avatar, Button, Card, DescriptionList, Modal, confirm } from '@/components/ui';
 import EditProfileForm from './components/EditProfileForm/EditProfileForm';
@@ -14,19 +14,20 @@ const Profile = () => {
     const { data: user } = useMe();
     const logout = useLogout();
     const [editing, setEditing] = useState(false);
+    const { t } = useLanguage();
 
     const items = [
-        { key: 'name', label: 'Name', value: user?.name },
-        { key: 'username', label: 'Username', value: user?.username },
-        { key: 'email', label: 'Email', value: user?.email },
-        { key: 'role', label: 'Role', value: ROLE_LABELS[user?.role] || user?.role },
+        { key: 'name', label: t('profile.name'), value: user?.name },
+        { key: 'username', label: t('profile.username'), value: user?.username },
+        { key: 'email', label: t('profile.email'), value: user?.email },
+        { key: 'role', label: t('profile.role'), value: user?.role && t(`roles.${user.role}`) },
     ];
 
     const confirmLogoutAll = () => {
         confirm({
-            title: 'Log out of all devices?',
-            content: 'You will be logged out everywhere, including this device. Other devices are logged out within a few minutes.',
-            confirmText: 'Log out everywhere',
+            title: t('profile.logoutAllTitle'),
+            content: t('profile.logoutAllText'),
+            confirmText: t('profile.logoutAllConfirm'),
             danger: true,
             // Returning the promise keeps the button loading until the server answers
             onConfirm: () => logout.mutateAsync({ allDevices: true }).catch(() => {}),
@@ -35,29 +36,29 @@ const Profile = () => {
 
     return (
         <div className={styles.page}>
-            <PageHeader title="Profile" subtitle="Your account details" />
+            <PageHeader title={t('profile.title')} subtitle={t('profile.subtitle')} />
             <Card
-                title="Account"
+                title={t('profile.account')}
                 actions={(
                     <div className={styles.accountActions}>
                         <Avatar name={user?.name} />
                         <Button variant="secondary" size="sm" icon={<FiEdit2 aria-hidden="true" />} onClick={() => setEditing(true)}>
-                            Edit
+                            {t('profile.edit')}
                         </Button>
                     </div>
                 )}
             >
                 <DescriptionList items={items} />
             </Card>
-            <Modal open={editing} onClose={() => setEditing(false)} title="Edit profile">
+            <Modal open={editing} onClose={() => setEditing(false)} title={t('profile.editTitle')}>
                 <EditProfileForm user={user} onDone={() => setEditing(false)} />
             </Modal>
             <Card className={styles.security}>
                 <div>
-                    <h2 className={styles.securityTitle}>Sessions</h2>
-                    <p className={styles.securityText}>Logged in somewhere you no longer use, or lost a device? End every session.</p>
+                    <h2 className={styles.securityTitle}>{t('profile.sessionsTitle')}</h2>
+                    <p className={styles.securityText}>{t('profile.sessionsText')}</p>
                 </div>
-                <Button variant="dangerOutline" onClick={confirmLogoutAll}>Log out of all devices</Button>
+                <Button variant="dangerOutline" onClick={confirmLogoutAll}>{t('profile.logoutAll')}</Button>
             </Card>
         </div>
     );

@@ -1,11 +1,13 @@
 import { FiAlertTriangle } from 'react-icons/fi';
 import styles from './ConnectionError.module.css';
 import { Button, Card, EmptyState } from '@/components/ui';
+import useLanguage from '@/hooks/useLanguage';
 
 // Full-page message when the account could not be loaded. `error` is an ApiError:
 // 503 means the server is running but its database is not reachable; anything else, the server itself.
 const ConnectionError = ({ error, onRetry, onBackToLogin }) => {
     const databaseDown = error?.status === 503;
+    const { t } = useLanguage();
 
     return (
         <div className={styles.page} role="alert">
@@ -13,14 +15,12 @@ const ConnectionError = ({ error, onRetry, onBackToLogin }) => {
                 <EmptyState
                     icon={<FiAlertTriangle />}
                     tone="warning"
-                    title={databaseDown ? 'Cannot reach the database' : 'Cannot connect to the server'}
-                    description={databaseDown
-                        ? 'The server is running but cannot reach its database. Please try again in a moment.'
-                        : 'Your account could not be loaded. Make sure the server is running, then try again.'}
+                    title={t(databaseDown ? 'connection.databaseTitle' : 'connection.serverTitle')}
+                    description={t(databaseDown ? 'connection.databaseText' : 'connection.serverText')}
                     actions={(
                         <>
-                            <Button onClick={onRetry}>Try again</Button>
-                            <Button variant="secondary" onClick={onBackToLogin}>Back to login</Button>
+                            <Button onClick={onRetry}>{t('connection.tryAgain')}</Button>
+                            <Button variant="secondary" onClick={onBackToLogin}>{t('connection.backToLogin')}</Button>
                         </>
                     )}
                 />

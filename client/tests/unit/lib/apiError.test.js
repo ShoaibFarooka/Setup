@@ -1,4 +1,4 @@
-import { ApiError, NETWORK_ERROR_MESSAGE, toApiError } from '@/lib/apiError';
+import { ApiError, toApiError } from '@/lib/apiError';
 
 describe('toApiError', () => {
     test('a server failure keeps its status, message, field errors, data and request id', () => {
@@ -21,7 +21,7 @@ describe('toApiError', () => {
     });
 
     test('no response (server down, no network) -> status 0 with a readable message', () => {
-        expect(toApiError(new Error('Network Error'))).toMatchObject({ status: 0, message: NETWORK_ERROR_MESSAGE });
+        expect(toApiError(new Error('Network Error'))).toMatchObject({ status: 0, message: 'Unable to reach the server. Please check your connection and try again.' });
     });
 
     test('a response without the contract (e.g. a proxy error page) still gets a message', () => {

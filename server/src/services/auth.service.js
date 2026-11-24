@@ -26,12 +26,12 @@ const loginUser = async (loginData) => {
 
     const user = await userRepository.findUserByLoginWithPassword(identifier);
     if (!user) {
-        throwError('Invalid credentials!', 401);
+        throwError('auth.invalidCredentials', 401);
     }
 
     const passwordMatched = await authUtils.comparePassword(user.password, password);
     if (!passwordMatched) {
-        throwError('Invalid credentials!', 401);
+        throwError('auth.invalidCredentials', 401);
     }
 
     const { accessToken, refreshToken } = createTokens(user);
@@ -48,24 +48,24 @@ const loginUser = async (loginData) => {
 
 const refreshToken = async (refreshToken) => {
     if (!refreshToken) {
-        throwError('Refresh token not found!', 401);
+        throwError('auth.refreshTokenMissing', 401);
     }
 
     const payload = authUtils.verifyRefreshToken(refreshToken);
     if (!payload) {
-        throwError('Invalid refresh token!', 401);
+        throwError('auth.refreshTokenInvalid', 401);
     }
 
     const session = await sessionRepository.findSessionByTokenHash(authUtils.hashToken(refreshToken));
     if (!session || session.user.toString() !== payload.id) {
-        throwError('Invalid refresh token!', 401);
+        throwError('auth.refreshTokenInvalid', 401);
     }
 
     // Current email and role from the database, in case they changed since login
     const user = await userRepository.findUserById(payload.id, { email: 1, role: 1 });
     if (!user) {
         await sessionRepository.deleteSessionById(session._id);
-        throwError('Invalid refresh token!', 401);
+        throwError('auth.refreshTokenInvalid', 401);
     }
 
     // Rotate: the old refresh token stops working as soon as the new one is issued
@@ -90,10 +90,11 @@ const logoutAllDevices = async (userId) => {
 
 // "Forgot password": emails a single-use link to reset the password. The caller always answers the same way,
 // whether the account exists or not, so the form cannot be used to find out who has an account.
-const requestPasswordReset = async (email) => {
+// language: the email's language (the request's Accept-Language)
+const requestPasswordReset = async (email, language) => {
     // Checked first, for every request: failing only for existing accounts would reveal them
     if (!config.email.enabled) {
-        throwError('Email is not configured!', 500);
+        throwError('email.notConfigured', 500);
     }
 
     const user = await userRepository.findUserByEmail(email, { name: 1, email: 1 });
@@ -115,9 +116,10 @@ const requestPasswordReset = async (email) => {
     // server would reveal the account by timing). sendEmail logs a failure itself.
     emailService.sendTemplateEmail({
         to: user.email,
-        subject: 'Reset your password',
+        subject: 'email.resetPassword.subject',
         template: 'reset-password',
-        data: { name: user.name, resetUrl: `${config.clientUrl}/reset-password?token=${token}`, expiresInMinutes },
+        data: { name: user.name, resetUrl: `${config.clientUrl}/reset-password?token=${token}`, minutes: expiresInMinutes },
+        language,
     }).catch(() => {});
 };
 
@@ -126,13 +128,13 @@ const requestPasswordReset = async (email) => {
 const resetPassword = async ({ token, password }) => {
     const reset = await passwordResetRepository.consumePasswordReset(authUtils.hashToken(token));
     if (!reset) {
-        throwError('This reset link is invalid or has expired', 400);
+        throwError('auth.resetLinkInvalid', 400);
     }
 
     const passwordDigest = await authUtils.hashPassword(password);
     const user = await userRepository.updateUserById(reset.user, { password: passwordDigest }, {}, { _id: 1 });
     if (!user) {
-        throwError('This reset link is invalid or has expired', 400);
+        throwError('auth.resetLinkInvalid', 400);
     }
 
     await passwordResetRepository.deletePasswordResetsByUserId(reset.user);

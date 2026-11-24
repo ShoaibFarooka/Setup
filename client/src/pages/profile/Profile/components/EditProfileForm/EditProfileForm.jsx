@@ -2,6 +2,7 @@ import { useState } from 'react';
 import styles from './EditProfileForm.module.css';
 import useUpdateMe from '@/hooks/useUpdateMe';
 import { Button, FormField, Input } from '@/components/ui';
+import useLanguage from '@/hooks/useLanguage';
 import { profileSchema } from '@/validations/userValidations';
 import { validateForm } from '@/utils/validationUtils';
 
@@ -11,6 +12,7 @@ const EditProfileForm = ({ user, onDone }) => {
     const [values, setValues] = useState({ name: user.name, email: user.email });
     const [errors, setErrors] = useState({});
     const updateMe = useUpdateMe();
+    const { t } = useLanguage();
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -29,15 +31,15 @@ const EditProfileForm = ({ user, onDone }) => {
 
     return (
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
-            <FormField label="Name" error={errors.name}>
+            <FormField label={t('profile.name')} error={errors.name && t(errors.name)}>
                 <Input name="name" autoComplete="name" value={values.name} onChange={handleChange} />
             </FormField>
-            <FormField label="Email" error={errors.email}>
+            <FormField label={t('profile.email')} error={errors.email && t(errors.email)}>
                 <Input name="email" type="email" autoComplete="email" value={values.email} onChange={handleChange} />
             </FormField>
             <div className={styles.actions}>
-                <Button variant="ghost" onClick={onDone}>Cancel</Button>
-                <Button type="submit" loading={updateMe.isPending}>Save changes</Button>
+                <Button variant="ghost" onClick={onDone}>{t('profile.cancel')}</Button>
+                <Button type="submit" loading={updateMe.isPending}>{t('profile.save')}</Button>
             </div>
         </form>
     );

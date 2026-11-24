@@ -15,7 +15,7 @@ const uploadFile = (field, { maxSizeMb = 10, types = ['image/png', 'image/jpeg',
         if (types.includes(file.mimetype)) {
             return callback(null, true);
         }
-        callback(new AppError(`File type not allowed (allowed: ${types.join(', ')})`, 400));
+        callback(new AppError('errors.fileTypeNotAllowedList', 400, { values: { types: types.join(', ') } }));
     },
 }).single(field);
 

@@ -13,7 +13,7 @@ describe('auth.service loginUser', () => {
         userRepository.findUserByLoginWithPassword.mockResolvedValue(null);
 
         await expect(authService.loginUser({ identifier: 'nobody', password: 'x' }))
-            .rejects.toMatchObject({ statusCode: 401, message: 'Invalid credentials!' });
+            .rejects.toMatchObject({ statusCode: 401, message: 'auth.invalidCredentials' });
     });
 
     test('rejects a wrong password with 401', async () => {
@@ -44,11 +44,11 @@ describe('auth.service refreshToken', () => {
     const tokenFor = (id) => authUtils.createRefreshToken({ id, email: 'a@b.com', role: 'user' });
 
     test('missing token -> 401', async () => {
-        await expect(authService.refreshToken(undefined)).rejects.toMatchObject({ statusCode: 401, message: 'Refresh token not found!' });
+        await expect(authService.refreshToken(undefined)).rejects.toMatchObject({ statusCode: 401, message: 'auth.refreshTokenMissing' });
     });
 
     test('invalid token -> 401', async () => {
-        await expect(authService.refreshToken('invalid')).rejects.toMatchObject({ statusCode: 401, message: 'Invalid refresh token!' });
+        await expect(authService.refreshToken('invalid')).rejects.toMatchObject({ statusCode: 401, message: 'auth.refreshTokenInvalid' });
     });
 
     test('no session for the token -> 401', async () => {

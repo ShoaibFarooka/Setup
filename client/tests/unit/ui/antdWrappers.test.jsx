@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ThemeProvider from '@/contexts/ThemeProvider';
-import { Button, DropdownMenu, Modal, Table, Tabs, Tooltip, UiProvider, confirm, toast } from '@/components/ui';
+import { Button, DropdownMenu, Modal, PaginationHandler, PasswordInput, Spinner, Table, Tabs, Tooltip, UiProvider, confirm, toast } from '@/components/ui';
 
 // The wrappers as the app uses them: inside the theme and UiProvider
 const renderUi = (ui) => {
@@ -126,5 +126,48 @@ describe('toast and confirm', () => {
         await user.click(within(dialog).getByRole('button', { name: 'Delete' }));
 
         expect(onConfirm).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('UiProvider texts and direction', () => {
+    const arabicTexts = {
+        loading: 'جارٍ التحميل',
+        confirm: 'تأكيد',
+        cancel: 'إلغاء',
+        showPassword: 'إظهار كلمة المرور',
+        pagination: { next: 'الصفحة التالية', summary: ({ count, total }) => `عرض ${count} من ${total}` },
+    };
+    const renderWithTexts = (ui) => render(<ThemeProvider><UiProvider direction="rtl" texts={arabicTexts}>{ui}</UiProvider></ThemeProvider>);
+
+    test('the ui components use the texts the app passes; the ones it leaves out stay English', () => {
+        renderWithTexts(
+            <>
+                <Spinner />
+                <PasswordInput aria-label="Password" />
+                <PaginationHandler count={20} totalCount={28} pageIndex={1} totalPages={2} handlePageChange={() => {}} />
+            </>,
+        );
+
+        expect(screen.getByRole('status', { name: 'جارٍ التحميل' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'إظهار كلمة المرور' })).toBeInTheDocument();
+        expect(screen.getByText('عرض 20 من 28')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'الصفحة التالية' })).toBeInTheDocument();
+        // Not passed: the English default
+        expect(screen.getByRole('button', { name: 'Previous page' })).toBeInTheDocument();
+    });
+
+    test('confirm() buttons default to the passed texts', async () => {
+        renderWithTexts(<Button onClick={() => confirm({ title: 'حذف؟' })}>Open</Button>);
+
+        await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+
+        expect(await screen.findByRole('button', { name: 'تأكيد' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'إلغاء' })).toBeInTheDocument();
+    });
+
+    test('Ant Design parts follow the direction', async () => {
+        renderWithTexts(<Table label="Users" columns={[{ key: 'name', title: 'Name', dataIndex: 'name' }]} data={[]} />);
+
+        expect(document.querySelector('.ant-table-wrapper-rtl')).toBeInTheDocument();
     });
 });

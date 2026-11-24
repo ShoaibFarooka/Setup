@@ -1,4 +1,4 @@
-import { THEMES, accounts, expect, pageReady, test } from './fixtures';
+import { THEMES, accounts, expect, pageReady, test, useLanguage } from './fixtures';
 
 // Screenshots compared with approved ones (e2e/__screenshots__): an unintended visual change fails the test
 // and test-results/ gets the expected, actual and diff images. After an intended design change, look at the new
@@ -83,3 +83,47 @@ for (const theme of THEMES) {
         await expect(page).toHaveScreenshot(`menu-open-${theme}.png`);
     });
 }
+
+// Arabic (right to left): the main page types in the light theme, at every size, and the phone menu drawer
+const ARABIC_PAGES = [
+    { name: 'login', path: '/login', heading: 'تسجيل الدخول إلى حسابك', loggedIn: false },
+    { name: 'reset-password', path: `/reset-password?token=${'a'.repeat(64)}`, heading: 'تعيين كلمة مرور جديدة', loggedIn: false },
+    { name: 'dashboard', path: '/dashboard', heading: 'لوحة التحكم', loggedIn: true },
+    { name: 'profile', path: '/profile', heading: 'الملف الشخصي', loggedIn: true },
+    { name: 'users', path: '/users', heading: 'المستخدمون', loggedIn: true, account: 'admin', waitFor: 'عرض ٢٠ من ٢٨ (الصفحة ١ من ٢)' },
+];
+
+for (const { name, path, heading, loggedIn, account, waitFor } of ARABIC_PAGES) {
+    test(`${name} in Arabic looks as approved`, async ({ page, loginAs }, testInfo) => {
+        await page.emulateMedia({ colorScheme: 'light' });
+        await useLanguage(page, 'ar');
+        if (loggedIn) {
+            await loginAs(account ? accounts[account] : undefined);
+        }
+        for (const { label, viewport } of sizes(testInfo.project.name)) {
+            if (viewport) {
+                await page.setViewportSize(viewport);
+            }
+            await page.goto(path);
+            await pageReady(page, heading);
+            if (waitFor) {
+                await expect(page.getByText(waitFor)).toBeVisible();
+            }
+            await expect(page).toHaveScreenshot(`${name}-ar-light-${label}.png`, { mask: [page.locator('td:last-child')] });
+        }
+    });
+}
+
+test('the phone menu drawer in Arabic looks as approved (opens from the right)', async ({ page, loginAs, openMenu, isMobile }) => {
+    test.skip(!isMobile, 'phones only');
+    await page.emulateMedia({ colorScheme: 'light' });
+    await useLanguage(page, 'ar');
+    await loginAs();
+    await page.goto('/dashboard');
+    await pageReady(page, 'لوحة التحكم');
+
+    await openMenu();
+    await expect(page.getByRole('button', { name: 'إغلاق القائمة' })).toBeVisible();
+
+    await expect(page).toHaveScreenshot('menu-open-ar-light.png');
+});

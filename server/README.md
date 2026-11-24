@@ -287,6 +287,24 @@ res.type('application/pdf').attachment('users.pdf').send(pdf);
 - Puppeteer stays on version 24: version 25 is published as ES modules only, which Jest cannot load without an experimental Node flag.
 - **Known `npm audit` findings (accepted):** Puppeteer 24's own dependencies report "high" advisories: `extract-zip` (path traversal when unzipping), `basic-ftp` via `proxy-agent` (crashes on malicious FTP listings) and `zod` via `chromium-bidi` (memory on huge inputs). None of them handles data from API requests: the first two run only while Puppeteer downloads Chrome (from Google, at `npm install`), and `chromium-bidi` only for the WebDriver BiDi protocol, which `renderPdf` does not use. The fix is Puppeteer 25 or newer: upgrade when Jest can load it without the flag, or earlier if a project needs it (then load it with `await import('puppeteer')` and run Jest with `--experimental-vm-modules`). Any new audit finding outside this list is not accepted by this note.
 
+### Languages
+
+The server answers in the language the client asks for (`Accept-Language`; `en` by default, `ar`): response messages, validation messages, emails and PDFs. The contract is in `../CLAUDE.md` ("Languages").
+
+- **Texts:** `src/locales/en.json` and `ar.json`, the same keys in both (`tests/unit/utils/i18n.util.test.js` fails when a key or a `{placeholder}` is missing). Code uses keys:
+
+  ```js
+  res.status(200).json(successBody(req.t('users.fetched'), { user }));   // in a controller
+  throwError('users.notFound', 404);                                     // in a service: the error handler translates it
+  throwError('errors.duplicateField', 409, { values: { field: 'email' } });
+  yup.string().required('validation.emailRequired');                     // in a schema: the validation middleware translates it
+  ```
+
+- **Per request:** `src/middlewares/language.middleware.js` (first, after the request logger) sets `req.language` and `req.t(key, values)` and answers with `Content-Language`. A message that is not a key (from a library) is sent as it is.
+- **Emails and PDFs:** `{{t "email.resetPassword.greeting"}}` in templates (placeholders come from the template's data); pass the language (`sendTemplateEmail({ ..., language: req.language })`, `renderPdf(name, { ..., lang: req.language })`). Layouts get `lang`, `dir` and `rtl` for right-to-left.
+- **Logs stay English** (and show the key): they are for developers.
+- **A new language:** `src/locales/<code>.json` and an entry in `src/utils/i18n.util.js` (and the client's, see `../CLAUDE.md`).
+
 ### HTTP caching and body size
 
 - Every `/api` response has `Cache-Control: no-store`: answers are personal or change often, so browsers and proxies must not keep copies.

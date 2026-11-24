@@ -10,7 +10,7 @@ const authenticateRequest = (req, res, next) => {
         const payload = token && authUtils.verifyAccessToken(token);
 
         if (!payload) {
-            throwError('Invalid or missing token!', 401);
+            throwError('auth.tokenMissing', 401);
         }
 
         req.user = payload;
@@ -26,11 +26,11 @@ const verifyRole = (requiredRoles) => {
             const user = await userRepository.findUserById(req.user?.id, { role: 1 });
 
             if (!user) {
-                throwError('User not found', 404);
+                throwError('auth.userNotFound', 404);
             }
 
             if (!requiredRoles.includes(user.role)) {
-                throwError('Insufficient role', 403);
+                throwError('auth.insufficientRole', 403);
             }
 
             // Current role from the database (the role in the token may be outdated)

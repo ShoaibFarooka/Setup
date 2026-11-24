@@ -57,7 +57,8 @@
     --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.14);
 
     /* ---- Typography ---- */
-    --font-family: 'Inter', system-ui, sans-serif;
+    /* Inter for Latin letters; Noto Sans Arabic takes the Arabic ones (each font covers only its own letters) */
+    --font-family: 'Inter', 'Noto Sans Arabic', system-ui, sans-serif;
     /* Text sizes in rem, so they follow the size people set in their browser. Body text stays 16px on every
        screen (smaller is hard to read, and phones zoom into smaller inputs); headings scale with the screen
        width between a phone value and a desktop value (clamp), so they never wrap awkwardly on a phone. */

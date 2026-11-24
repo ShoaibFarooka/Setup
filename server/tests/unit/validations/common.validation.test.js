@@ -1,4 +1,15 @@
 const { idParams, paginationQuery } = require('../../../src/validations/common.validation');
+const { translate } = require('../../../src/utils/i18n.util');
+
+// The schemas give keys; this is the English text people get (the key with Yup's params filled in)
+const refusal = async (schema, value) => {
+    try {
+        await schema.validate(value);
+        return null;
+    } catch (error) {
+        return translate('en', error.message, error.params);
+    }
+};
 
 describe('paginationQuery', () => {
     const schema = paginationQuery({ sort: ['name', '-name'], defaultSort: '-name' });
@@ -19,7 +30,7 @@ describe('paginationQuery', () => {
         [{ limit: '0' }, 'limit must be at least 1'],
         [{ sort: 'password' }, 'sort must be one of: name, -name'],
     ])('%o is refused: %s', async (query, message) => {
-        await expect(schema.validate(query)).rejects.toThrow(message);
+        expect(await refusal(schema, query)).toBe(message);
     });
 });
 
@@ -29,6 +40,6 @@ describe('idParams', () => {
     });
 
     test.each(['123', 'not-an-id', 'aaaaaaaaaaaa'])('%s is refused', async (id) => {
-        await expect(idParams.validate({ id })).rejects.toThrow('id is not a valid id');
+        expect(await refusal(idParams, { id })).toBe('id is not a valid id');
     });
 });

@@ -1,0 +1,107 @@
+{
+    "server": {
+        "up": "Server is up!",
+        "healthy": "Server is healthy",
+        "databaseDisconnected": "Database is disconnected",
+        "routeNotFound": "Route not found",
+        "corsNotAllowed": "Not allowed by CORS"
+    },
+    "auth": {
+        "loggedIn": "Logged in successfully",
+        "sessionRefreshed": "Session refreshed successfully",
+        "loggedOut": "Logged out successfully",
+        "loggedOutAll": "Logged out from all devices successfully",
+        "invalidCredentials": "Invalid credentials!",
+        "refreshTokenMissing": "Refresh token not found!",
+        "refreshTokenInvalid": "Invalid refresh token!",
+        "tokenMissing": "Invalid or missing token!",
+        "userNotFound": "User not found",
+        "insufficientRole": "Insufficient role",
+        "resetLinkSent": "If an account exists for that email, we have sent a link to reset the password",
+        "passwordChanged": "Your password has been changed. Log in with the new password",
+        "resetLinkInvalid": "This reset link is invalid or has expired"
+    },
+    "users": {
+        "fetched": "User fetched successfully",
+        "listFetched": "Users fetched successfully",
+        "profileUpdated": "Profile updated successfully",
+        "notFound": "User not found!",
+        "emailTaken": "A user with that email has already been registered!",
+        "usernameTaken": "A user with that username has already been registered!"
+    },
+    "email": {
+        "notConfigured": "Email is not configured!",
+        "sendFailed": "Unable to send email!",
+        "sentBy": "This email was sent by {appName}.",
+        "resetPassword": {
+            "subject": "Reset your password",
+            "greeting": "Hi {name},",
+            "intro": "We received a request to reset the password of your {appName} account. Choose a new password with the button below.",
+            "textIntro": "We received a request to reset the password of your {appName} account. Open this link to choose a new password:",
+            "button": "Reset password",
+            "expiry": "The link works for {minutes} minutes and only once. If the button does not work, copy this link into your browser:",
+            "textExpiry": "The link works for {minutes} minutes and only once.",
+            "ignore": "If you did not ask for this, you can ignore this email: your password stays the same."
+        }
+    },
+    "pdf": {
+        "sampleReport": {
+            "generated": "Generated {date}",
+            "name": "Name",
+            "email": "Email",
+            "empty": "Nothing to show"
+        }
+    },
+    "errors": {
+        "internal": "Internal Server Error",
+        "databaseUnavailable": "Database is unavailable, please try again later.",
+        "duplicateField": "A record with that {field} already exists!",
+        "duplicateValue": "Duplicate value not allowed!",
+        "invalidValue": "Invalid value for {path}",
+        "validationFailed": "Validation failed",
+        "bodyTooLarge": "Request body is too large",
+        "invalidJson": "Request body is not valid JSON",
+        "requestValidationFailed": "Request validation failed",
+        "paramsValidationFailed": "Params validation failed",
+        "queryValidationFailed": "Query validation failed",
+        "unknownFieldsBody": "Unknown fields present in request body",
+        "unknownFieldsParams": "Unknown fields present in request params",
+        "unknownFieldsQuery": "Unknown fields present in request query",
+        "tooManyRequests": "Too many requests from this IP, please try again later",
+        "tooManyLogins": "Too many failed login attempts, please try again later",
+        "tooManyResetRequests": "Too many password reset requests, please try again later",
+        "tooManyResetAttempts": "Too many failed password reset attempts, please try again later",
+        "fileRequired": "File upload is mandatory",
+        "fileTooLarge": "File size too large",
+        "fileTypeNotAllowed": "File type not allowed",
+        "fileTypeNotAllowedList": "File type not allowed (allowed: {types})",
+        "fileValidationFailed": "File validation failed"
+    },
+    "validation": {
+        "identifierRequired": "Email or username is required",
+        "identifierTooLong": "Email or username is too long",
+        "passwordRequired": "Password is required",
+        "passwordMin": "Password must be at least 8 characters",
+        "passwordMax": "Password must be at most 72 characters",
+        "passwordLetter": "Password must contain a letter",
+        "passwordNumber": "Password must contain a number",
+        "emailRequired": "Email is required",
+        "emailTooLong": "Email is too long",
+        "emailInvalid": "Enter a valid email address",
+        "resetTokenRequired": "Reset token is required",
+        "resetTokenInvalid": "Reset token is invalid",
+        "nameMin": "Name must be at least 2 characters",
+        "nameMax": "Name must be at most 60 characters",
+        "pageNumber": "page must be a number",
+        "pageInteger": "page must be a whole number",
+        "pageMin": "page must be at least 1",
+        "limitNumber": "limit must be a number",
+        "limitInteger": "limit must be a whole number",
+        "limitMin": "limit must be at least 1",
+        "limitMax": "limit must be at most {max}",
+        "sortOneOf": "sort must be one of: {values}",
+        "searchMax": "search must be at most {max} characters",
+        "idRequired": "id is required",
+        "idInvalid": "id is not a valid id"
+    }
+}

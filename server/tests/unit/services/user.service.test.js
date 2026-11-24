@@ -10,7 +10,7 @@ describe('user.service', () => {
         userRepository.userExists.mockResolvedValueOnce(true);
 
         await expect(userService.createUser({ name: 'A', username: 'a', email: 'a@b.com', password: 'x' }))
-            .rejects.toMatchObject({ statusCode: 409, message: 'A user with that email has already been registered!' });
+            .rejects.toMatchObject({ statusCode: 409, message: 'users.emailTaken' });
         expect(userRepository.createUser).not.toHaveBeenCalled();
     });
 
@@ -18,7 +18,7 @@ describe('user.service', () => {
         userRepository.userExists.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
 
         await expect(userService.createUser({ name: 'A', username: 'a', email: 'a@b.com', password: 'x' }))
-            .rejects.toMatchObject({ statusCode: 409, message: 'A user with that username has already been registered!' });
+            .rejects.toMatchObject({ statusCode: 409, message: 'users.usernameTaken' });
         expect(userRepository.createUser).not.toHaveBeenCalled();
     });
 
@@ -80,7 +80,7 @@ describe('user.service updateProfile', () => {
         userRepository.userExists.mockResolvedValue(true);
 
         await expect(userService.updateProfile('user-1', { email: 'taken@b.com' }))
-            .rejects.toMatchObject({ statusCode: 409, message: 'A user with that email has already been registered!' });
+            .rejects.toMatchObject({ statusCode: 409, message: 'users.emailTaken' });
         expect(userRepository.updateUserById).not.toHaveBeenCalled();
     });
 
