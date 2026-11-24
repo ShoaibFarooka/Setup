@@ -2,11 +2,11 @@ const errorHandler = require('../../../src/middlewares/error-handler.middleware'
 const logger = require('../../../src/utils/logger.util');
 const { AppError } = require('../../../src/utils/app-error.util');
 
-const run = (error) => {
+const run = (error, req = {}) => {
     const res = {};
     res.status = jest.fn(() => res);
     res.json = jest.fn(() => res);
-    errorHandler(error, { method: 'GET', originalUrl: '/test' }, res, jest.fn());
+    errorHandler(error, { method: 'GET', originalUrl: '/test', ...req }, res, jest.fn());
     return { status: res.status.mock.calls[0][0], body: res.json.mock.calls[0][0] };
 };
 
@@ -23,6 +23,20 @@ describe('error-handler.middleware', () => {
 
     test('AppError errors are included when given', () => {
         expect(run(new AppError('Invalid', 400, { errors: { name: 'Required' } }))).toEqual({ status: 400, body: failure('Invalid', { errors: { name: 'Required' } }) });
+    });
+
+    test('AppError field messages that are keys are translated; other values pass unchanged', () => {
+        const error = new AppError('errors.validationFailed', 400, { errors: { email: 'users.emailTaken', unknownFields: ['role'] } });
+        expect(run(error)).toEqual({
+            status: 400,
+            body: failure('Validation failed', { errors: { email: 'A user with that email has already been registered!', unknownFields: ['role'] } }),
+        });
+    });
+
+    test('AppError field messages use the request language', () => {
+        const t = jest.fn((key) => `ar:${key}`);
+        const { body } = run(new AppError('errors.validationFailed', 400, { errors: { email: 'users.emailTaken' } }), { t });
+        expect(body.errors).toEqual({ email: 'ar:users.emailTaken' });
     });
 
     test('database unavailable -> 503', () => {

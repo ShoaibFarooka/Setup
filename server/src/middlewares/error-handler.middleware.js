@@ -24,9 +24,13 @@ const errorHandlerMiddleware = (error, req, res, _next) => {
         return res.status(statusCode).json(body);
     };
 
-    // Errors thrown on purpose by the app (services, CORS, ...)
+    // Errors thrown on purpose by the app (services, CORS, ...). Field messages may be keys too (a service has no
+    // req.t); texts already translated and non-text values (unknownFields is a list) pass unchanged
     if (error instanceof AppError) {
-        return send(error.statusCode, errorBody(t(error.message, error.values), { errors: error.errors, data: error.data }));
+        const errors = error.errors && Object.fromEntries(
+            Object.entries(error.errors).map(([field, message]) => [field, typeof message === 'string' ? t(message) : message]),
+        );
+        return send(error.statusCode, errorBody(t(error.message, error.values), { errors, data: error.data }));
     }
 
     // Database not reachable: temporary, not a server bug

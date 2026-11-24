@@ -174,10 +174,10 @@ const { throwError } = require('../utils/app-error.util');
 throwError('users.notFound', 404);                                          // a key in src/locales/*.json
 throwError('orders.alreadyPaid', 409, { data: { orderId } });
 throwError('errors.duplicateField', 409, { values: { field: 'email' } });   // fills the text's {field}
-throwError('errors.validationFailed', 400, { errors: { email: req.t('users.emailTaken') } });
+throwError('errors.validationFailed', 400, { errors: { email: 'users.emailTaken' } });
 ```
 
-- The message is a key: the error handler sends its text in the request's language ("Languages" below). `errors` is sent as it is, so translate its messages where they are made (`req.t(...)`).
+- The message and the field messages in `errors` are keys: the error handler sends their texts in the request's language ("Languages" below).
 
 - Express 5 forwards errors from `async` handlers automatically, so controllers have **no try/catch**.
 - In middleware, pass errors on with `next(error)` (or `next(new AppError(...))`).
