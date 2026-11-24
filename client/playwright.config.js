@@ -25,9 +25,10 @@ export default defineConfig({
         // A real server and browser: logging in hashes the password (bcrypt), which takes a moment on a busy machine
         timeout: 10 * 1000,
         // Runs render pixel-identically, so only a tiny allowance: a percentage would let small real changes
-        // (a new button in a corner) pass unnoticed
-        // (100 pixels: the theme toggle's icon sometimes differs by about 60 pixels between runs)
-        toHaveScreenshot: { maxDiffPixels: 100, animations: 'disabled' },
+        // pass unnoticed. 20 pixels absorbs text anti-aliasing (a few letter edges, up to ~10 pixels) and still
+        // fails on any real change: one added icon is over 100 pixels (a 100-pixel allowance once let a new
+        // button pass unnoticed)
+        toHaveScreenshot: { maxDiffPixels: 20, animations: 'disabled' },
     },
     projects: [
         { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },

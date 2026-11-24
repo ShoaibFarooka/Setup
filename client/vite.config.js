@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import { fileURLToPath } from 'node:url';
 
+// Packages whose code is split by where it is used instead of kept in one file (see manualChunks)
+const SPLIT_BY_USE = new Set(['antd', '@rc-component', '@ant-design', 'rc-util', 'rc-motion', 'rc-resize-observer']);
+
 export default defineConfig({
     plugins: [
         react(),
@@ -20,11 +23,16 @@ export default defineConfig({
         emptyOutDir: true,
         rollupOptions: {
             output: {
-                // One file per package, so a dependency update only changes that file in the browser cache
+                // One file per package, so a dependency update only changes that file in the browser cache.
+                // Except Ant Design and its helper packages: one file for all of it would put every component any
+                // page uses (tables, dialogs, tabs, ...) on the first page. Left to Rollup, each part goes with the
+                // code that uses it, so lazy pages download their own Ant Design parts.
                 manualChunks(id) {
-                    if (id.includes('node_modules')) {
-                        return id.toString().split('node_modules/')[1].split('/')[0].toString();
+                    if (!id.includes('node_modules')) {
+                        return undefined;
                     }
+                    const name = id.toString().split('node_modules/')[1].split('/')[0].toString();
+                    return SPLIT_BY_USE.has(name) ? undefined : name;
                 },
             },
         },

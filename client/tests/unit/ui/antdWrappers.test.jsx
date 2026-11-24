@@ -44,20 +44,21 @@ describe('Modal', () => {
 describe('Table', () => {
     const columns = [{ key: 'name', title: 'Name', dataIndex: 'name' }];
 
-    test('shows a row per item', () => {
+    test('shows a row per item', async () => {
         renderUi(<Table label="Products" columns={columns} data={[{ id: 1, name: 'Chair' }, { id: 2, name: 'Desk' }]} />);
 
         expect(screen.getByRole('region', { name: 'Products' })).toHaveAttribute('tabindex', '0');
 
-        expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
+        // Ant Design's table downloads on first use
+        expect(await screen.findByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
         expect(screen.getByRole('cell', { name: 'Chair' })).toBeInTheDocument();
         expect(screen.getByRole('cell', { name: 'Desk' })).toBeInTheDocument();
     });
 
-    test('says so when there are no rows', () => {
+    test('says so when there are no rows', async () => {
         renderUi(<Table columns={columns} data={[]} emptyText="No products yet" />);
 
-        expect(screen.getByText('No products yet')).toBeInTheDocument();
+        expect(await screen.findByText('No products yet')).toBeInTheDocument();
     });
 });
 
@@ -65,7 +66,7 @@ describe('Tabs', () => {
     test('switches between views', async () => {
         const user = renderUi(<Tabs items={[{ key: 'a', label: 'Details', children: 'Details view' }, { key: 'b', label: 'History', children: 'History view' }]} />);
 
-        await user.click(screen.getByRole('tab', { name: 'History' }));
+        await user.click(await screen.findByRole('tab', { name: 'History' }));
 
         expect(screen.getByRole('tab', { name: 'History' })).toHaveAttribute('aria-selected', 'true');
         expect(await screen.findByText('History view')).toBeVisible();

@@ -447,11 +447,15 @@ Other notes:
 
 ## Performance
 
-What is in place: pages load on first use (`lazy()`), each package is its own cached file (`manualChunks` in `vite.config.js`), server data is cached and shared (TanStack Query, 30s fresh), lists are paged on the server, search is debounced, spinners wait before showing, the font is bundled.
+What is in place: pages load on first use (`lazy()`), so do Ant Design's heavy parts (Table, Tabs, Modal: see below), each package is its own cached file except Ant Design, which is split by use (`manualChunks` in `vite.config.js`), server data is cached and shared (TanStack Query, 30s fresh), lists are paged on the server, search is debounced, spinners wait before showing, the font is bundled.
 
-**Size budget:** the first page downloads about **230 KB of JavaScript (gzip)**, mostly React, the router, TanStack Query, axios and Ant Design's runtime (about 130 KB of it). Keep it **under 250 KB**. `npm run build` prints every file's size: compare before and after a change that adds code to the first page.
+**Size budget:** the first page downloads about **220 KB of JavaScript (gzip)**: React, the router, TanStack Query, axios and the part of Ant Design every page needs (its theme provider, toasts, `confirm()`, Tooltip, Dropdown). Keep it **under 250 KB**. Measure it after `npm run build`: everything `dist/index.html` loads up front, gzipped (`npm run build`'s own list shows every file, including those only some pages load):
 
-Ant Design's runtime loads on every page because `UiProvider` themes it. That is accepted for now; if the budget gets tight, the options are loading Ant Design only when one of its components is first used, or replacing its remaining wrappers (Modal, toast, Tooltip, Dropdown, Tabs, Table) with own ones.
+```bash
+node -e "const fs=require('fs'),z=require('zlib');const h=fs.readFileSync('dist/index.html','utf8');const f=[...h.matchAll(/(?:src|href)=\"\/(assets\/[^\"]+\.js)\"/g)].map(m=>m[1]);console.log((f.reduce((s,x)=>s+z.gzipSync(fs.readFileSync('dist/'+x)).length,0)/1024).toFixed(1)+' KB')"
+```
+
+**Ant Design on demand:** `components/ui` wrappers of heavy Ant Design components load them with `lazy()` from their own path (`lazy(() => import('antd/es/table'))`), so only pages that show one download it: `Table` and `Tabs` show a skeleton meanwhile, `Modal` loads when it first opens. Tooltip and Dropdown stay on the first page: their code is shared with toasts and `confirm()`, which load anyway, so splitting them off would only add a moment where a first hover or click does nothing. A new wrapper of a heavy Ant Design component does the same; check the budget before and after.
 
 **Rules**
 
