@@ -171,10 +171,13 @@ Throw from anywhere (services, middleware); the error handler (`src/middlewares/
 ```js
 const { throwError } = require('../utils/app-error.util');
 
-throwError('User not found!', 404);
-throwError('Order already paid', 409, { data: { orderId } });
-throwError('Invalid input', 400, { errors: { email: 'Already taken' } });
+throwError('users.notFound', 404);                                          // a key in src/locales/*.json
+throwError('orders.alreadyPaid', 409, { data: { orderId } });
+throwError('errors.duplicateField', 409, { values: { field: 'email' } });   // fills the text's {field}
+throwError('errors.validationFailed', 400, { errors: { email: req.t('users.emailTaken') } });
 ```
+
+- The message is a key: the error handler sends its text in the request's language ("Languages" below). `errors` is sent as it is, so translate its messages where they are made (`req.t(...)`).
 
 - Express 5 forwards errors from `async` handlers automatically, so controllers have **no try/catch**.
 - In middleware, pass errors on with `next(error)` (or `next(new AppError(...))`).

@@ -182,17 +182,22 @@ Forms check their values in the browser with **Yup** schemas from `src/validatio
 ```js
 // validations/authValidations.js
 export const loginSchema = yup.object({
-    identifier: yup.string().trim().max(254, 'Email or username is too long!').required('Email or username is required!'),
-    password: yup.string().trim().required('Password is required!'),
+    identifier: yup.string().trim().max(254, 'validation.identifierTooLong').required('validation.identifierRequired'),
+    password: yup.string().trim().required('validation.passwordRequired'),
 });
 
 // in the form's submit handler
-const errors = await validateForm(loginSchema, values);   // {} when valid, else { field: 'first message' }
+const errors = await validateForm(loginSchema, values);   // {} when valid, else { field: 'first message key' }
 setErrors(errors);
 if (Object.keys(errors).length === 0) {
     login.mutate(values);
 }
+
+// in the form: the key is translated where it is shown
+<FormField label={t('auth.login.identifier')} error={errors.identifier && t(errors.identifier)}>
 ```
+
+- Messages are keys in `src/locales/*.json` ("Languages" below), never visible text.
 
 - `validateForm(schema, values)` (`utils/validationUtils.js`) returns the first message per field. It is async, so schemas may use async tests.
 - The schemas mirror the server's rules for quick feedback only: the **server still validates every request** and stays the authority. When the server's rules change, update the matching client schema.
