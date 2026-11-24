@@ -32,7 +32,8 @@ describe('dashboard (static parts and data sections)', () => {
         expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument();
 
         expect(await screen.findByText('Grace Hopper')).toBeInTheDocument();
-        expect(screen.getByText('1 users in total')).toBeInTheDocument();
+        // One user, not "1 users"
+        expect(screen.getByText('1 user in total')).toBeInTheDocument();
         expect(document.querySelector('[aria-busy="true"]')).not.toBeInTheDocument();
     });
 

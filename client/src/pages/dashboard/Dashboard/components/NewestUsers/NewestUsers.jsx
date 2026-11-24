@@ -5,6 +5,8 @@ import { Avatar, Card, EmptyState, Skeleton } from '@/components/ui';
 
 const NEWEST = { page: 1, limit: 5, sort: '-createdAt' };
 
+const usersInTotal = (count) => `${count} ${count === 1 ? 'user' : 'users'} in total`;
+
 const formatDate = (value) => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(value));
 
 // Admins: how many users there are and the five newest, loaded on their own (the rest of the dashboard does not wait)
@@ -22,7 +24,7 @@ const NewestUsers = () => {
             >
                 {({ items, pagination }) => (
                     <>
-                        <p className={styles.total}>{pagination.totalItems} users in total</p>
+                        <p className={styles.total}>{usersInTotal(pagination.totalItems)}</p>
                         <ul className={styles.list}>
                             {items.map((user) => (
                                 <li key={user.id} className={styles.row}>

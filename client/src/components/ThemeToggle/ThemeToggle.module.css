@@ -1,6 +1,9 @@
-/* The new icon turns into place on every change, so the switch feels like it happened */
 .icon {
     display: flex;
+}
+
+/* After a click, the new icon turns into place, so the switch feels like it happened (not on page load) */
+.turnIn {
     animation: turnIn var(--duration-base) var(--easing-out) both;
 }
 
